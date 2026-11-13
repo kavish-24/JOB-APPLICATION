@@ -1,0 +1,407 @@
+{
+  "generated_at": "2026-11-13T17:03:34.612335+00:00",
+  "variants": {
+    "ai": {
+      "source_file": "resume/AI_ML/Kavish_Toraskar_Resume.pdf",
+      "category_order": [
+        "AI/ML",
+        "Languages",
+        "Backend",
+        "Databases",
+        "Frontend & Mobile",
+        "Tools & DevOps",
+        "CS Fundamentals"
+      ],
+      "skills": {
+        "AI/ML": [
+          "PyTorch",
+          "Transformers",
+          "Whisper fine-tuning",
+          "RAG pipelines",
+          "LLMs (Google Gemini)",
+          "Voice Agents",
+          "VAD",
+          "Scikit-learn",
+          "Pandas",
+          "NumPy"
+        ],
+        "Languages": [
+          "Python",
+          "Java",
+          "JavaScript",
+          "C++",
+          "C",
+          "SQL"
+        ],
+        "Backend": [
+          "FastAPI",
+          "Node.js",
+          "Express",
+          "Java Spring Boot",
+          "REST APIs",
+          "WebSockets"
+        ],
+        "Databases": [
+          "MySQL",
+          "MongoDB",
+          "Supabase",
+          "Firebase Realtime DB"
+        ],
+        "Frontend & Mobile": [
+          "React",
+          "Next.js",
+          "React Native",
+          "Vue.js",
+          "HTML",
+          "CSS"
+        ],
+        "Tools & DevOps": [
+          "Git",
+          "Kubernetes (kubectl)",
+          "Kibana",
+          "Selenium",
+          "Claude Code"
+        ],
+        "CS Fundamentals": [
+          "Data Structures & Algorithms",
+          "OOP",
+          "DBMS",
+          "SDLC"
+        ]
+      },
+      "extra_keywords": {
+        "Project Tech Stack": [
+          "React Native",
+          "Node.js",
+          "Express",
+          "MongoDB",
+          "Firebase Realtime DB",
+          "FCM",
+          "Leaflet",
+          "OSM",
+          "Face Recognition"
+        ],
+        "AI & Generative AI": [
+          "LangChain",
+          "LangGraph",
+          "RAG",
+          "MCP Tools",
+          "Vector Databases"
+        ]
+      },
+      "all_skills": [
+        "C",
+        "C++",
+        "Claude Code",
+        "CSS",
+        "Data Structures & Algorithms",
+        "DBMS",
+        "Express",
+        "Face Recognition",
+        "FastAPI",
+        "FCM",
+        "Firebase Realtime DB",
+        "Git",
+        "HTML",
+        "Java",
+        "Java Spring Boot",
+        "JavaScript",
+        "Kibana",
+        "Kubernetes (kubectl)",
+        "LangChain",
+        "LangGraph",
+        "Leaflet",
+        "LLMs (Google Gemini)",
+        "MCP Tools",
+        "MongoDB",
+        "MySQL",
+        "Next.js",
+        "Node.js",
+        "NumPy",
+        "OOP",
+        "OSM",
+        "Pandas",
+        "Python",
+        "PyTorch",
+        "RAG",
+        "RAG pipelines",
+        "React",
+        "React Native",
+        "REST APIs",
+        "Scikit-learn",
+        "SDLC",
+        "Selenium",
+        "SQL",
+        "Supabase",
+        "Transformers",
+        "VAD",
+        "Vector Databases",
+        "Voice Agents",
+        "Vue.js",
+        "WebSockets",
+        "Whisper fine-tuning"
+      ],
+      "total_skills": 50
+    },
+    "sde": {
+      "source_file": "resume/SDE/Kavish_Toraskar.pdf",
+      "category_order": [
+        "Languages",
+        "Backend",
+        "Frontend & Mobile",
+        "Databases",
+        "AI/ML",
+        "Tools & DevOps",
+        "CS Fundamentals"
+      ],
+      "skills": {
+        "Languages": [
+          "Python",
+          "Java",
+          "JavaScript",
+          "C++",
+          "C",
+          "SQL"
+        ],
+        "Backend": [
+          "FastAPI",
+          "Node.js",
+          "Express",
+          "Java Spring Boot",
+          "REST APIs",
+          "WebSockets"
+        ],
+        "Frontend & Mobile": [
+          "React",
+          "Next.js",
+          "React Native",
+          "Vue.js",
+          "HTML",
+          "CSS"
+        ],
+        "Databases": [
+          "MySQL",
+          "MongoDB",
+          "Supabase",
+          "Firebase Realtime DB"
+        ],
+        "AI/ML": [
+          "PyTorch",
+          "Transformers",
+          "Whisper fine-tuning",
+          "RAG pipelines",
+          "LLMs (Google Gemini)",
+          "Voice Agents",
+          "VAD",
+          "Scikit-learn",
+          "Pandas",
+          "NumPy"
+        ],
+        "Tools & DevOps": [
+          "Git",
+          "Kubernetes (kubectl)",
+          "Kibana",
+          "Selenium",
+          "Claude Code"
+        ],
+        "CS Fundamentals": [
+          "Data Structures & Algorithms",
+          "OOP",
+          "DBMS",
+          "SDLC"
+        ]
+      },
+      "extra_keywords": {
+        "Project Tech Stack": [
+          "React Native",
+          "Node.js",
+          "Express",
+          "MongoDB",
+          "Firebase Realtime DB",
+          "FCM",
+          "Leaflet",
+          "OSM",
+          "Face Recognition"
+        ]
+      },
+      "all_skills": [
+        "C",
+        "C++",
+        "Claude Code",
+        "CSS",
+        "Data Structures & Algorithms",
+        "DBMS",
+        "Express",
+        "Face Recognition",
+        "FastAPI",
+        "FCM",
+        "Firebase Realtime DB",
+        "Git",
+        "HTML",
+        "Java",
+        "Java Spring Boot",
+        "JavaScript",
+        "Kibana",
+        "Kubernetes (kubectl)",
+        "Leaflet",
+        "LLMs (Google Gemini)",
+        "MongoDB",
+        "MySQL",
+        "Next.js",
+        "Node.js",
+        "NumPy",
+        "OOP",
+        "OSM",
+        "Pandas",
+        "Python",
+        "PyTorch",
+        "RAG pipelines",
+        "React",
+        "React Native",
+        "REST APIs",
+        "Scikit-learn",
+        "SDLC",
+        "Selenium",
+        "SQL",
+        "Supabase",
+        "Transformers",
+        "VAD",
+        "Voice Agents",
+        "Vue.js",
+        "WebSockets",
+        "Whisper fine-tuning"
+      ],
+      "total_skills": 45
+    },
+    "fullstack": {
+      "source_file": "resume/FULL_STACK/Kavish_Toraskar.pdf",
+      "category_order": [
+        "Languages",
+        "Frontend & Mobile",
+        "Backend",
+        "Databases",
+        "AI/ML",
+        "Tools & DevOps",
+        "CS Fundamentals"
+      ],
+      "skills": {
+        "Languages": [
+          "Python",
+          "Java",
+          "JavaScript",
+          "C++",
+          "C",
+          "SQL"
+        ],
+        "Frontend & Mobile": [
+          "React",
+          "Next.js",
+          "React Native",
+          "Vue.js",
+          "HTML",
+          "CSS"
+        ],
+        "Backend": [
+          "FastAPI",
+          "Node.js",
+          "Express",
+          "Java Spring Boot",
+          "REST APIs",
+          "WebSockets"
+        ],
+        "Databases": [
+          "MySQL",
+          "MongoDB",
+          "Supabase",
+          "Firebase Realtime DB"
+        ],
+        "AI/ML": [
+          "PyTorch",
+          "Transformers",
+          "Whisper fine-tuning",
+          "RAG pipelines",
+          "LLMs (Google Gemini)",
+          "Voice Agents",
+          "VAD",
+          "Scikit-learn",
+          "Pandas",
+          "NumPy"
+        ],
+        "Tools & DevOps": [
+          "Git",
+          "Kubernetes (kubectl)",
+          "Kibana",
+          "Selenium",
+          "Claude Code"
+        ],
+        "CS Fundamentals": [
+          "Data Structures & Algorithms",
+          "OOP",
+          "DBMS",
+          "SDLC"
+        ]
+      },
+      "extra_keywords": {
+        "Project Tech Stack": [
+          "React Native",
+          "Node.js",
+          "Express",
+          "MongoDB",
+          "Firebase Realtime DB",
+          "FCM",
+          "Leaflet",
+          "OSM",
+          "Face Recognition"
+        ]
+      },
+      "all_skills": [
+        "C",
+        "C++",
+        "Claude Code",
+        "CSS",
+        "Data Structures & Algorithms",
+        "DBMS",
+        "Express",
+        "Face Recognition",
+        "FastAPI",
+        "FCM",
+        "Firebase Realtime DB",
+        "Git",
+        "HTML",
+        "Java",
+        "Java Spring Boot",
+        "JavaScript",
+        "Kibana",
+        "Kubernetes (kubectl)",
+        "Leaflet",
+        "LLMs (Google Gemini)",
+        "MongoDB",
+        "MySQL",
+        "Next.js",
+        "Node.js",
+        "NumPy",
+        "OOP",
+        "OSM",
+        "Pandas",
+        "Python",
+        "PyTorch",
+        "RAG pipelines",
+        "React",
+        "React Native",
+        "REST APIs",
+        "Scikit-learn",
+        "SDLC",
+        "Selenium",
+        "SQL",
+        "Supabase",
+        "Transformers",
+        "VAD",
+        "Voice Agents",
+        "Vue.js",
+        "WebSockets",
+        "Whisper fine-tuning"
+      ],
+      "total_skills": 45
+    }
+  }
+}
