@@ -81,6 +81,10 @@ SKILLS: dict[str, list[str]] = {
     "CUDA": [], "Distributed Training": [], "Reinforcement Learning": [],
     "Kafka": [], "Spark": ["apache spark", "pyspark"], "Hadoop": [],
     "Terraform": [], "Helm": [],
+    # .NET / Angular stack (different ecosystem -> tier C)
+    "C#": [], "ASP.NET": ["asp.net mvc", "asp.net core"], ".NET": ["dotnet"],
+    "WCF": [], "RxJS": [], "NGXS": [],
+    "jQuery": [], "SQL Server": ["ms sql", "mssql"], "ECMAScript": [],
 }
 
 # spellings that must match case-sensitively (too ambiguous in plain English)
@@ -100,7 +104,7 @@ TIER_A3 = {
 TIER_C = {
     "CUDA", "Distributed Training", "Reinforcement Learning", "Kafka", "Spark",
     "Hadoop", "System Design", "Rust", "Go", "Scala", "Computer Vision",
-    "Terraform", "Helm",
+    "Terraform", "Helm", "C#", "ASP.NET", ".NET", "WCF", "Angular", "RxJS", "NGXS",
 }
 
 # Tier B per role family: (skill, frequency, hours-to-basics)  freq: H / MH / M / L
@@ -133,9 +137,52 @@ TIER_B = {
 # adjacent tools not in the plan tables but clearly <=5h next to a known skill
 EXTRA_B = {"Flask": ("M", 2), "SQLite": ("L", 1), "Bootstrap": ("L", 2),
            "GitHub": ("M", 1), "Unit Testing": ("M", 2), "Shell Scripting": ("M", 3),
-           "Elasticsearch": ("L", 4)}
+           "Elasticsearch": ("L", 4),
+           "jQuery": ("M", 2), "SQL Server": ("M", 2), "ECMAScript": ("L", 1)}
 
 FREQ_SCORE = {"H": 4, "MH": 3, "M": 2, "L": 1}
 
 # Tier-B frequencies that count as "an ATS for this role nearly always searches it"
 IMPLIED_FREQ = {"H", "MH"}
+
+
+# --- resume line each skill belongs on (the 7 skills lines) -----------------
+_LINES = {
+    "Languages": ["Python", "Java", "JavaScript", "TypeScript", "C++", "C", "SQL", "Go",
+                  "Rust", "Scala", "Kotlin", "R", "C#", "ECMAScript"],
+    "Frontend & Mobile": ["React", "Next.js", "Vue.js", "Angular", "HTML", "CSS",
+                          "Tailwind CSS", "Redux", "Zustand", "React Native", "Expo",
+                          "Bootstrap", "Material UI", "jQuery", "RxJS", "NGXS",
+                          "Leaflet", "Geospatial"],
+    "Backend": ["FastAPI", "Flask", "Django", "Node.js", "Express", "Spring Boot",
+                "REST APIs", "GraphQL", "WebSockets", "Socket.IO", "gRPC",
+                "Microservices", "JWT", "OAuth 2.0", "Hibernate", "JPA", "Swagger",
+                "Authentication", "RBAC", "Third-party API Integration",
+                "Real-time Systems", "Push Notifications", "FCM", "ASP.NET", ".NET",
+                "WCF"],
+    "Databases": ["MySQL", "PostgreSQL", "MongoDB", "Redis", "Supabase", "Firebase",
+                  "SQLite", "Elasticsearch", "DynamoDB", "NoSQL", "SQL Server",
+                  "Mongoose", "Database Schema Design", "Query Optimization"],
+    "AI/ML": ["PyTorch", "TensorFlow", "Keras", "Scikit-learn", "Pandas", "NumPy",
+              "Transformers", "Hugging Face", "LLMs", "RAG", "LangChain", "LangGraph",
+              "LlamaIndex", "Vector Databases", "FAISS", "ChromaDB", "Pinecone",
+              "pgvector", "Embeddings", "Semantic Search", "Prompt Engineering",
+              "OpenAI API", "Gemini", "AI Agents", "Tool Calling", "MCP", "Fine-tuning",
+              "NLP", "Computer Vision", "Speech Recognition", "Voice Agents", "MLflow",
+              "RAGAS", "Langfuse", "LangSmith", "Streamlit", "Gradio", "Jupyter",
+              "Generative AI", "Deep Learning", "Machine Learning", "MLOps",
+              "Data Cleaning", "Knowledge Base", "Information Retrieval",
+              "Face Recognition", "CUDA", "Distributed Training",
+              "Reinforcement Learning"],
+    "CS Fundamentals": ["Data Structures & Algorithms", "OOP", "DBMS", "SDLC",
+                        "System Design"],
+}
+CATEGORY_OF = {skill: line for line, skills in _LINES.items() for skill in skills}
+DEFAULT_CATEGORY = "Tools & DevOps"  # git, docker, cloud, testing, agile, ...
+
+# Tier A2 = listed on the resume but no bullet proves it -> dropped first
+TIER_A2 = {"C++", "C", "React", "Vue.js", "HTML", "CSS", "FastAPI", "Scikit-learn",
+           "Pandas", "NumPy", "Git", "Data Structures & Algorithms", "OOP", "DBMS",
+           "SDLC"}
+# never removed from the resume, whatever the JD says
+PROTECTED = {"Python", "Java", "JavaScript", "SQL"}

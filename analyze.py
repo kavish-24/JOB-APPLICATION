@@ -81,7 +81,7 @@ def _find_skills(segment: str) -> list[tuple[str, str]]:
             hits.append((m.start(), m.end(), canon, m.group(0)))
     keep = []
     for a in hits:
-        inside = any(b is not a and b[2] != a[2] and b[0] <= a[0] and a[1] <= b[1]
+        inside = any(b is not a and b[0] <= a[0] and a[1] <= b[1]
                      and (b[1] - b[0]) > (a[1] - a[0]) for b in hits)
         if not inside:
             keep.append(a)
@@ -98,8 +98,11 @@ def scan_jd(jd: str) -> dict[str, dict]:
             seg = seg.strip(" \t-•*·▪●")
             if not seg:
                 continue
+            # a short line is a heading, unless it is just a skill name (no bullet,
+            # no trailing colon) like the bare "AWS" under "Nice to have:"
             heading = (not is_bullet and len(seg) <= 60 and len(seg.split()) <= 7
-                       and not seg.endswith((".", ";", ",")))
+                       and not seg.endswith((".", ";", ","))
+                       and (seg.endswith(":") or not _find_skills(seg)))
             has_pref = bool(_PREF.search(seg))
             if heading:
                 mode = "preferred" if has_pref else "required"
@@ -274,6 +277,7 @@ def analyze(kb: dict, variant: str, title: str, jd: str) -> dict:
         "mismatch_after_suggested_additions_pct": score(after)["overall_mismatch_pct"],
         "skills": {
             "matched": [w["skill"] for w in wanted if w["in_resume"]],
+            "wanted_buckets": {w["skill"]: w["bucket"] for w in wanted},
             "missing": [{k: w[k] for k in ("skill", "bucket", "tier", "freq", "hours",
                                            "jd_spelling", "source", "experience_gated")
                          if k in w} for w in missing],

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T17:03:34.612335+00:00",
+  "generated_at": "2026-11-13T17:58:55.205684+00:00",
   "variants": {
     "ai": {
       "source_file": "resume/AI_ML/Kavish_Toraskar_Resume.pdf",
@@ -68,6 +68,36 @@
           "DBMS",
           "SDLC"
         ]
+      },
+      "layout": {
+        "AI/ML": {
+          "chars": 134,
+          "max_chars": 134
+        },
+        "Languages": {
+          "chars": 48,
+          "max_chars": 135
+        },
+        "Backend": {
+          "chars": 75,
+          "max_chars": 133
+        },
+        "Databases": {
+          "chars": 57,
+          "max_chars": 124
+        },
+        "Frontend & Mobile": {
+          "chars": 66,
+          "max_chars": 134
+        },
+        "Tools & DevOps": {
+          "chars": 72,
+          "max_chars": 134
+        },
+        "CS Fundamentals": {
+          "chars": 62,
+          "max_chars": 125
+        }
       },
       "extra_keywords": {
         "Project Tech Stack": [
@@ -211,6 +241,36 @@
           "SDLC"
         ]
       },
+      "layout": {
+        "Languages": {
+          "chars": 48,
+          "max_chars": 135
+        },
+        "Backend": {
+          "chars": 75,
+          "max_chars": 133
+        },
+        "Frontend & Mobile": {
+          "chars": 66,
+          "max_chars": 134
+        },
+        "Databases": {
+          "chars": 57,
+          "max_chars": 124
+        },
+        "AI/ML": {
+          "chars": 134,
+          "max_chars": 134
+        },
+        "Tools & DevOps": {
+          "chars": 72,
+          "max_chars": 134
+        },
+        "CS Fundamentals": {
+          "chars": 62,
+          "max_chars": 125
+        }
+      },
       "extra_keywords": {
         "Project Tech Stack": [
           "React Native",
@@ -340,6 +400,36 @@
           "DBMS",
           "SDLC"
         ]
+      },
+      "layout": {
+        "Languages": {
+          "chars": 48,
+          "max_chars": 135
+        },
+        "Frontend & Mobile": {
+          "chars": 66,
+          "max_chars": 134
+        },
+        "Backend": {
+          "chars": 75,
+          "max_chars": 133
+        },
+        "Databases": {
+          "chars": 57,
+          "max_chars": 124
+        },
+        "AI/ML": {
+          "chars": 134,
+          "max_chars": 134
+        },
+        "Tools & DevOps": {
+          "chars": 72,
+          "max_chars": 134
+        },
+        "CS Fundamentals": {
+          "chars": 62,
+          "max_chars": 125
+        }
       },
       "extra_keywords": {
         "Project Tech Stack": [

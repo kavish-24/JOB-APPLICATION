@@ -39,8 +39,30 @@ def sections(text: str) -> dict[str, str]:
     return {parts[i]: parts[i + 1].strip() for i in range(1, len(parts) - 1, 2)}
 
 
+def line_layout(doc, categories: list[str]) -> dict:
+    """Measure each skills line in the PDF and how many more characters would
+    still fit on one printed line (right edge = widest body line)."""
+    lines = []
+    for page in doc:
+        for block in page.get_text("dict")["blocks"]:
+            for ln in block.get("lines", []):
+                t = "".join(s["text"] for s in ln["spans"]).strip()
+                if t:
+                    lines.append((t, ln["bbox"][0], ln["bbox"][2]))
+    right = max((x1 for t, _, x1 in lines if len(t) > 100), default=0)
+    out = {}
+    for t, x0, x1 in lines:
+        for cat in categories:
+            if t.startswith(cat + ":") and cat not in out:
+                per_char = (x1 - x0) / len(t)
+                spare = int((right - x1) / per_char) - 2  # 2-char safety margin
+                out[cat] = {"chars": len(t), "max_chars": len(t) + max(spare, 0)}
+    return out
+
+
 def parse_pdf(pdf: Path) -> dict:
-    text = "".join(p.get_text() for p in pymupdf.open(pdf))
+    doc = pymupdf.open(pdf)
+    text = "".join(p.get_text() for p in doc)
     secs = sections(text)
 
     categories: dict[str, list[str]] = {}
@@ -66,6 +88,7 @@ def parse_pdf(pdf: Path) -> dict:
         "source_file": str(pdf.relative_to(ROOT)).replace("\\", "/"),
         "category_order": list(categories),
         "skills": categories,
+        "layout": line_layout(doc, list(categories)),
         "extra_keywords": {k: [s for s in dict.fromkeys(v) if s.lower() not in listed or k == "Project Tech Stack"]
                            for k, v in extra.items()},
         "all_skills": flat,
