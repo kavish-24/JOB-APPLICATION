@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const RESUMES = [
   { value: "ai", label: "AI / ML" },
@@ -156,6 +156,61 @@ function Composed({ c }) {
   );
 }
 
+function Viewer({ done }) {
+  const [which, setWhich] = useState("edited");
+  const src = which === "edited" ? done.url : done.original_url;
+  const e = done.edit;
+  return (
+    <section className="results">
+      <h3>Resume viewer</h3>
+      <div className="toggle">
+        <button type="button" className={which === "edited" ? "" : "ghost"}
+                onClick={() => setWhich("edited")}>Edited copy</button>
+        <button type="button" className={which === "original" ? "" : "ghost"}
+                onClick={() => setWhich("original")}>Original</button>
+        <a href={done.url} target="_blank" rel="noreferrer">open / download ↗</a>
+      </div>
+      <p className="muted">Saved as <b>output/{done.file}</b></p>
+      <iframe key={src} title="resume" src={`${src}#view=FitH`} className="pdf" />
+      <h4>What the tool changed</h4>
+      <table>
+        <tbody>
+          {e.changelog.map((x, i) => (
+            <tr key={i}>
+              <td className={x.action === "added" ? "t-A3" : "t-C"}>{x.action}</td>
+              <td>{x.skill}</td><td>{x.category}</td><td className="muted">{x.reason}</td>
+            </tr>
+          ))}
+          {e.no_slot.map((x) => (
+            <tr key={x.skill}>
+              <td className="t-B">no slot</td><td>{x.skill}</td><td>{x.category}</td>
+              <td className="muted">{x.reason}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function History({ onOpen }) {
+  const [files, setFiles] = useState([]);
+  useEffect(() => {
+    fetch("/outputs").then((r) => r.json()).then(setFiles).catch(() => {});
+  }, []);
+  if (!files.length) return null;
+  return (
+    <details>
+      <summary>Previous edited copies ({files.length})</summary>
+      <ul>
+        {files.map((f) => (
+          <li key={f.file}><a href={f.url} target="_blank" rel="noreferrer">{f.file}</a></li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
 export default function App() {
   const [resume, setResume] = useState("sde");
   const [title, setTitle] = useState("");
@@ -163,12 +218,42 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState(null);
+  const [done, setDone] = useState(null);
+  const [adding, setAdding] = useState(false);
+
+  async function post(path) {
+    const res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ resume, title, jd }),
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.detail || `HTTP ${res.status}`);
+    return body;
+  }
+
+  async function add() {
+    if (!title.trim() || !jd.trim()) return setError("Enter a title and a JD first.");
+    setAdding(true);
+    setError("");
+    setDone(null);
+    try {
+      const body = await post("/apply");
+      setDone(body);
+      setData({ analysis: body.analysis, compose: null });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAdding(false);
+    }
+  }
 
   async function submit(e) {
     e.preventDefault();
     setLoading(true);
     setError("");
     setData(null);
+    setDone(null);
     try {
       const res = await fetch("/compose", {
         method: "POST",
@@ -208,11 +293,18 @@ export default function App() {
           placeholder="Paste the full job description (multi-line is fine)"
           required
         />
-        <button disabled={loading}>{loading ? "Analyzing (~15s)…" : "Analyze"}</button>
+        <div className="actions">
+          <button disabled={loading || adding}>{loading ? "Analyzing (~15s)…" : "Preview"}</button>
+          <button type="button" className="add" disabled={loading || adding} onClick={add}>
+            {adding ? "Editing resume (~20s)…" : "Add to resume"}
+          </button>
+        </div>
       </form>
       {error && <p className="error">{error}</p>}
-      {data && <Composed c={data.compose} />}
+      {done && <Viewer done={done} />}
+      {data?.compose && <Composed c={data.compose} />}
       {data && <Results data={data.analysis} />}
+      <History key={done?.file} />
     </main>
   );
 }

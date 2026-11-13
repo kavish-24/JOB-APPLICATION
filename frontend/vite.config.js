@@ -7,5 +7,9 @@ const target = process.env.API_TARGET || "http://localhost:8000";
 
 export default defineConfig({
   plugins: [react()],
-  server: { proxy: { "/analyze": target, "/compose": target } },
+  server: {
+    proxy: Object.fromEntries(
+      ["/analyze", "/compose", "/apply", "/files", "/resume", "/outputs"].map((p) => [p, target])
+    ),
+  },
 });

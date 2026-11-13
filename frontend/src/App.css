@@ -42,3 +42,9 @@ th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--lin
 @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
 
 pre.section { background: var(--card); border: 1px solid var(--line); padding: 12px; border-radius: 8px; white-space: pre-wrap; }
+
+.actions, .toggle { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+button.add { background: var(--ok); }
+button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+iframe.pdf { width: 100%; height: 900px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+details { margin-top: 24px; }
