@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import { Segmented, Stat, TagInput } from "../components.jsx";
+import { navigate } from "../router.js";
 
-const STAGES = [
+export const STAGES = [
   { value: "applied", label: "Applied", tone: "zinc" },
   { value: "interviewing", label: "Interviewing", tone: "amber" },
   { value: "cleared", label: "Cleared", tone: "lime" },
   { value: "rejected", label: "Rejected", tone: "coral" },
 ];
-const TONE = Object.fromEntries(STAGES.map((s) => [s.value, s.tone]));
+export const TONE = Object.fromEntries(STAGES.map((s) => [s.value, s.tone]));
 const today = () => new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD, local
 
-function fmtDate(iso) {
+export function fmtDate(iso) {
   const [y, m, d] = iso.split("-").map(Number);
   const date = new Date(y, m - 1, d);
   const days = Math.round((new Date().setHours(0, 0, 0, 0) - date) / 86400000);
@@ -91,21 +92,19 @@ function AddForm({ initial, resumes, onSaved, onCancel }) {
   );
 }
 
-function JobRow({ job, onChange, onDelete }) {
-  const [open, setOpen] = useState(false);
-  const [error, setError] = useState("");
+function JobRow({ job, onChange }) {
   const { label, ago } = fmtDate(job.applied_date);
   const patch = async (body) => {
-    setError("");
-    try { onChange(await api.patch(`/api/job_hunt/${job.id}`, body)); }
-    catch (err) { setError(err.message); }
+    try { onChange(await api.patch(`/api/job_hunt/${job.id}`, body)); } catch { /* shown on detail page */ }
   };
   const shown = job.skills_lacking.slice(0, 4);
   const more = job.skills_lacking.length - shown.length;
+  const open = () => navigate(`/job_hunt/${job.id}`);
 
   return (
-    <article className={`job ${open ? "open" : ""}`}>
-      <div className="job-main" onClick={() => setOpen(!open)}>
+    <article className="job">
+      <div className="job-main" role="link" tabIndex={0} onClick={open}
+           onKeyDown={(e) => e.key === "Enter" && open()}>
         <span className={`dot ${TONE[job.stage]}`} aria-hidden="true" />
         <div className="job-title">
           <span className="strong">{job.company}</span>
@@ -119,47 +118,11 @@ function JobRow({ job, onChange, onDelete }) {
           <span>{label}</span><span className="faint">{ago}</span>
         </div>
         <select className={`stage-select ${TONE[job.stage]}`} value={job.stage}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}
                 onChange={(e) => patch({ stage: e.target.value })} aria-label="Stage">
           {STAGES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
       </div>
-
-      {open && (
-        <div className="job-detail">
-          <div className="detail-grid">
-            <div>
-              <h4>Skills I lack</h4>
-              <TagInput value={job.skills_lacking} onChange={(v) => patch({ skills_lacking: v })} />
-            </div>
-            <div>
-              <h4>Resume used</h4>
-              {job.resume_used
-                ? <a className="link" href={`/files/${job.resume_used}`} target="_blank" rel="noreferrer">{job.resume_used} ↗</a>
-                : <span className="faint">none</span>}
-              {job.link && (<><h4>Job post</h4>
-                <a className="link" href={job.link} target="_blank" rel="noreferrer">{job.link} ↗</a></>)}
-            </div>
-            <div>
-              <h4>Timeline</h4>
-              <ol className="timeline">
-                {(job.stage_history || []).map((h, i) => (
-                  <li key={i}><span className={`dot ${TONE[h.stage]}`} />{h.stage}
-                    <span className="faint mono"> {h.at.replace("T", " ").slice(0, 16)}</span></li>
-                ))}
-              </ol>
-            </div>
-          </div>
-          {job.notes && <p className="muted notes">{job.notes}</p>}
-          <div className="row end">
-            {error && <p className="error">{error}</p>}
-            <button type="button" className="btn danger"
-                    onClick={() => window.confirm(`Delete ${job.company} – ${job.role}?`) && onDelete(job.id)}>
-              Delete
-            </button>
-          </div>
-        </div>
-      )}
     </article>
   );
 }
@@ -202,10 +165,6 @@ export default function JobHunt() {
     `${j.company} ${j.role} ${j.skills_lacking.join(" ")}`.toLowerCase().includes(query.toLowerCase()));
 
   const replace = (item) => setJobs((js) => js.map((j) => (j.id === item.id ? item : j)));
-  const remove = async (id) => {
-    try { await api.del(`/api/job_hunt/${id}`); setJobs((js) => js.filter((j) => j.id !== id)); }
-    catch (err) { setError(err.message); }
-  };
 
   return (
     <>
@@ -262,7 +221,7 @@ export default function JobHunt() {
           </div>
         )}
         {jobs?.length > 0 && shown.length === 0 && <p className="faint">Nothing matches.</p>}
-        {shown.map((j) => <JobRow key={j.id} job={j} onChange={replace} onDelete={remove} />)}
+        {shown.map((j) => <JobRow key={j.id} job={j} onChange={replace} />)}
       </section>
     </>
   );

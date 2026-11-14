@@ -40,11 +40,14 @@ class JobIn(BaseModel):
     link: str | None = Field(default=None, max_length=500)
     resume_used: str | None = None
     skills_lacking: list[str] = []
+    skills_added: list[str] = []
+    skills_matched: list[str] = []
+    jd: str | None = Field(default=None, max_length=30000)
     applied_date: date = Field(default_factory=date.today)
     stage: Stage = "applied"
     notes: str | None = Field(default=None, max_length=2000)
 
-    @field_validator("skills_lacking")
+    @field_validator("skills_lacking", "skills_added", "skills_matched")
     @classmethod
     def clean_skills(cls, v):
         return _clean_skills(v)
@@ -61,11 +64,14 @@ class JobPatch(BaseModel):
     link: str | None = None
     resume_used: str | None = None
     skills_lacking: list[str] | None = None
+    skills_added: list[str] | None = None
+    skills_matched: list[str] | None = None
+    jd: str | None = Field(default=None, max_length=30000)
     applied_date: date | None = None
     stage: Stage | None = None
     notes: str | None = None
 
-    @field_validator("skills_lacking")
+    @field_validator("skills_lacking", "skills_added", "skills_matched")
     @classmethod
     def clean_skills(cls, v):
         return None if v is None else _clean_skills(v)
@@ -136,4 +142,22 @@ def lacking_from(analysis: dict, edit: dict) -> list[str]:
             out.append(m["skill"])
         elif not on_resume and m["bucket"] in ("required", "preferred"):
             out.append(m["skill"])
+    return _clean_skills(out)
+
+
+def added_from(edit: dict) -> list[str]:
+    return _clean_skills([c["skill"] for c in edit.get("changelog", []) if c["action"] == "added"])
+
+
+def lacking_from_selection(analysis: dict, edit: dict) -> list[str]:
+    """Picker flow: skills to study if shortlisted = unproven skills put on the
+    resume (an interviewer will ask) + must-add skills that were not added."""
+    added = {s.lower() for s in added_from(edit)}
+    out = []
+    for i in analysis["categories"]["must_add"] + analysis["categories"]["might_add"]:
+        on_resume = bool({i["skill"].lower(), i["text"].lower()} & added)
+        if on_resume and i["tier"] != "A3":
+            out.append(i["text"])
+        elif not on_resume and i in analysis["categories"]["must_add"]:
+            out.append(i["text"])
     return _clean_skills(out)

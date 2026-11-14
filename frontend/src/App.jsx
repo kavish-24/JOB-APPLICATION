@@ -1,6 +1,7 @@
 import { navigate, usePath } from "./router.js";
 import Tailor from "./pages/Tailor.jsx";
 import JobHunt from "./pages/JobHunt.jsx";
+import JobDetail from "./pages/JobDetail.jsx";
 
 const ROUTES = [
   { path: "/", label: "Tailor", Page: Tailor },
@@ -9,7 +10,8 @@ const ROUTES = [
 
 export default function App() {
   const path = usePath();
-  const route = ROUTES.find((r) => r.path === path) || ROUTES[0];
+  const detail = path.match(/^\/job_hunt\/([^/]+)\/?$/);
+  const route = detail ? ROUTES[1] : ROUTES.find((r) => r.path === path) || ROUTES[0];
   return (
     <div className="shell">
       <header className="topbar">
@@ -26,8 +28,8 @@ export default function App() {
           ))}
         </nav>
       </header>
-      <main className="page">
-        <route.Page />
+      <main className={`page ${detail ? "wide" : ""}`}>
+        {detail ? <JobDetail id={decodeURIComponent(detail[1])} /> : <route.Page />}
       </main>
     </div>
   );

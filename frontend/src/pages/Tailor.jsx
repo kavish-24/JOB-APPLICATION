@@ -8,8 +8,83 @@ const RESUMES = [
   { value: "sde", label: "SDE" },
   { value: "fullstack", label: "Full Stack" },
 ];
+const TIER_LABEL = { A3: "proven", B: "learnable", C: "don't have", unverified: "verify", unclassified: "check" };
 const pct = (n) => (n == null ? "–" : `${n}%`);
+const kwText = (k) => (typeof k === "string" ? k : k?.keyword || "");
+const uniq = (xs) => [...new Set((xs || []).map(kwText).filter(Boolean))];
 
+/* ------------------------------------------------------------ step 2: pick */
+function PickRow({ item, checked, onToggle }) {
+  return (
+    <label className={`tr pick ${checked ? "on" : ""}`}>
+      <input type="checkbox" checked={checked} onChange={() => onToggle(item.skill)} />
+      <span className="strong">{item.text}</span>
+      <span className={`badge tier-${item.tier}`}>{TIER_LABEL[item.tier] || item.tier}</span>
+      <span className="muted small">
+        {item.reason}
+        {item.where_to_use ? <span className="faint"> · {item.where_to_use}</span> : null}
+      </span>
+    </label>
+  );
+}
+
+function Picker({ data, selected, onToggle, onSetAll, onApply, busy }) {
+  const c = data.categories;
+  const llm = data.llm || {};
+  const groqDown = data.ats_keywords?.error;
+  return (
+    <section className="card">
+      <div className="card-head">
+        <div>
+          <p className="eyebrow">Step 2 · {data.resume} resume · {data.role_family} role{data.company ? ` · ${data.company}` : ""}</p>
+          <h2>Pick what to add</h2>
+        </div>
+        <span className={`badge ${llm.source === "groq" ? "lime" : "amber"}`}>
+          keywords: {llm.source === "groq" ? "Groq" : llm.fallback_used ? "local + role table" : "local"}
+        </span>
+      </div>
+      {groqDown && <p className="error">Groq failed, used the local fallback: {groqDown}</p>}
+      <div className="stats">
+        <Stat value={c.have.length} label="already have" tone="lime" />
+        <Stat value={c.must_add.length} label="must add" tone="amber" />
+        <Stat value={c.might_add.length} label="might add" />
+        <Stat value={pct(data.mismatch.overall_mismatch_pct)} label="mismatch now" tone="coral" />
+      </div>
+
+      <h3>Already on your resume</h3>
+      <Chips items={c.have.map((h) => h.text)} tone="lime" />
+
+      <div className="row between pick-head">
+        <h3>Must add <span className="faint small">· the JD/ATS ranks these essential and you can back them up</span></h3>
+        {c.must_add.length > 0 && (
+          <button type="button" className="btn ghost sm" onClick={() => onSetAll(c.must_add, true)}>Select all</button>
+        )}
+      </div>
+      {c.must_add.length
+        ? <div className="table">{c.must_add.map((i) => (
+            <PickRow key={i.skill} item={i} checked={selected.has(i.skill)} onToggle={onToggle} />))}</div>
+        : <p className="faint">Nothing essential is missing.</p>}
+
+      <h3>Might add <span className="faint small">· needs real work first: only tick what you can prove, no bluffing</span></h3>
+      {c.might_add.length
+        ? <div className="table">{c.might_add.map((i) => (
+            <PickRow key={i.skill} item={i} checked={selected.has(i.skill)} onToggle={onToggle} />))}</div>
+        : <p className="faint">Nothing else.</p>}
+
+      <div className="row end sticky-bar">
+        <span className="muted">{selected.size} selected</span>
+        <button type="button" className="btn ghost" disabled={!selected.size || !!busy}
+                onClick={() => onSetAll([...c.must_add, ...c.might_add], false)}>Clear</button>
+        <button type="button" className="btn primary" disabled={!selected.size || !!busy} onClick={onApply}>
+          {busy === "apply" ? <><span className="spin" /> Editing resume…</>
+            : `Add ${selected.size || ""} to resume`}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------ step 3: compare + save */
 function ChangeRows({ changelog, noSlot }) {
   return (
     <div className="table">
@@ -34,35 +109,66 @@ function ChangeRows({ changelog, noSlot }) {
   );
 }
 
-function Viewer({ done, title }) {
-  const [which, setWhich] = useState("edited");
-  const src = which === "edited" ? done.url : done.original_url;
-  const track = () => {
-    sessionStorage.setItem("prefill", JSON.stringify({
-      role: title, resume_used: done.file, skills_lacking: done.skills_lacking || [],
-    }));
-    navigate("/job_hunt");
-  };
+function Compare({ done, form, analysis }) {
+  const [saved, setSaved] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function save() {
+    if (!form.company.trim()) return setError("Add the company name in the form above first.");
+    setSaving(true);
+    setError("");
+    try {
+      setSaved(await api.post("/api/job_hunt", {
+        company: form.company.trim(),
+        role: form.title.trim(),
+        link: form.link.trim() || null,
+        resume_used: done.file,
+        skills_added: done.skills_added,
+        skills_matched: analysis.categories.have.map((h) => h.text),
+        skills_lacking: done.skills_lacking,
+        jd: form.jd,
+        stage: "applied",
+      }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <section className="card">
       <div className="card-head">
         <div>
-          <p className="eyebrow">Resume copy</p>
-          <h2>output/{done.file}</h2>
+          <p className="eyebrow">Step 3 · output/{done.file}</p>
+          <h2>Check it side by side</h2>
         </div>
         <div className="row">
-          <Segmented name="Version" value={which} onChange={setWhich}
-                     options={[{ value: "edited", label: "Edited" }, { value: "original", label: "Original" }]} />
           <a className="btn ghost" href={done.url} target="_blank" rel="noreferrer">Open ↗</a>
-          <button type="button" className="btn primary" onClick={track}>Track application →</button>
+          {saved
+            ? <button type="button" className="btn primary" onClick={() => navigate("/job_hunt")}>Saved ✓ · Open job hunt →</button>
+            : <button type="button" className="btn primary" disabled={saving} onClick={save}>
+                {saving ? <><span className="spin" /> Saving…</> : "Add to applied jobs"}
+              </button>}
         </div>
       </div>
-      <iframe key={src} title="Resume" src={`${src}#view=FitH`} className="pdf" />
-      <h3>What the MCP tool changed</h3>
+      {error && <p className="error">{error}</p>}
+      <div className="side">
+        <figure>
+          <figcaption className="eyebrow">Original</figcaption>
+          <iframe title="Original resume" src={`${done.original_url}#view=FitH`} className="pdf" />
+        </figure>
+        <figure>
+          <figcaption className="eyebrow lime">Edited</figcaption>
+          <iframe key={done.url} title="Edited resume" src={`${done.url}#view=FitH`} className="pdf" />
+        </figure>
+      </div>
+      <h3>What changed</h3>
       <ChangeRows changelog={done.edit.changelog} noSlot={done.edit.no_slot} />
       {done.skills_lacking?.length > 0 && (
         <>
-          <h3>Skills you lack for this job</h3>
+          <h3>Study these if shortlisted</h3>
           <Chips items={done.skills_lacking} tone="amber" />
         </>
       )}
@@ -70,112 +176,102 @@ function Viewer({ done, title }) {
   );
 }
 
-function Preview({ c }) {
+/* ------------------------------------------------------ Groq full report */
+function KeywordTable({ items }) {
+  if (!items?.length) return <span className="faint">none</span>;
   return (
-    <section className="card">
-      <div className="card-head">
-        <div>
-          <p className="eyebrow">Preview</p>
-          <h2>New technical skills section</h2>
+    <div className="table">
+      {items.map((x, i) => (
+        <div className="tr" key={`${kwText(x)}-${i}`}>
+          <span className={`badge ${x.source === "JD" ? "lime" : "amber"}`}>{x.source || "–"}</span>
+          <span className="strong">{kwText(x)}</span>
+          <span className="faint">{x.where_to_use}</span>
         </div>
-        <button type="button" className="btn ghost"
-                onClick={() => navigator.clipboard.writeText(c.skills_section)}>Copy</button>
-      </div>
-      <pre className="code">{c.skills_section}</pre>
-      <h3>Changes</h3>
-      <ChangeRows changelog={c.changelog} noSlot={c.no_slot} />
-      <h3>Line widths (pt)</h3>
-      <div className="table">
-        {Object.entries(c.space).map(([cat, s]) => (
-          <div className="tr space" key={cat}>
-            <span>{cat}</span>
-            <span className="meter"><i style={{ width: `${Math.min(100, (s.after / s.budget) * 100)}%` }} /></span>
-            <span className="mono small">{s.before} → {s.after} / {s.budget}</span>
-          </div>
-        ))}
-      </div>
-    </section>
+      ))}
+    </div>
   );
 }
 
-function Analysis({ data }) {
-  const m = data.mismatch;
-  const s = data.suggested_additions;
-  const sig = data.signals || { in_title: [], ats_hints: [], most_emphasised: [] };
+function Keywords({ data }) {
+  if (!data || data.error) return null;
+  const k = data.keywords || {};
+  const copyAll = () => navigator.clipboard.writeText(uniq([
+    ...(k.must_have_keywords || []), ...(k.good_to_have_keywords || []),
+    ...(k.technical_skills || []), ...(k.tools_and_platforms || []),
+  ]).join(", "));
   return (
-    <section className="card">
-      <div className="card-head">
-        <div>
-          <p className="eyebrow">Analysis · {data.resume} resume · {data.role_family} role</p>
-          <h2>JD match</h2>
-        </div>
-        <span className={`badge ${data.llm.used ? "lime" : "amber"}`}>
-          LLM {data.llm.used ? (data.llm.fallback_used ? "used + fallback" : "used") : "off"}
-        </span>
+    <details className="card report">
+      <summary>
+        <span className="eyebrow">ATS keywords · {data.model}</span>
+        <h2>Full Groq keyword report</h2>
+      </summary>
+      <div className="row end">
+        <button type="button" className="btn ghost" onClick={copyAll}>Copy keywords</button>
       </div>
-      <div className="stats">
-        <Stat value={pct(m.overall_mismatch_pct)} label="mismatch" tone="coral" />
-        <Stat value={pct(data.mismatch_after_suggested_additions_pct)} label="after additions" tone="lime" />
-        {["required", "preferred", "implied"].map((b) => (
-          <Stat key={b} value={pct(m[`${b}_mismatch_pct`])} label={`${b} · ${m[`${b}_missing`]}`} />
-        ))}
-      </div>
-      {(sig.in_title.length > 0 || sig.ats_hints.length > 0 || sig.most_emphasised.length > 0) && (
-        <p className="muted signals">
-          {sig.in_title.length > 0 && <>Title: <b>{sig.in_title.join(", ")}</b> · </>}
-          {sig.ats_hints.length > 0 && <>ATS hints: <b>{sig.ats_hints.join(", ")}</b> · </>}
-          {sig.most_emphasised.length > 0 && <>Stressed: <b>{sig.most_emphasised.join(", ")}</b></>}
-        </p>
-      )}
-      <h3>Already on your resume</h3>
-      <Chips items={data.skills.matched} tone="lime" />
-      <h3>Missing</h3>
-      <div className="table">
-        {data.skills.missing.map((x) => (
-          <div className="tr" key={x.skill}>
-            <span className="strong">{x.skill}</span>
-            <span className="faint">{x.bucket}</span>
-            <span className={`badge tier-${x.tier}`}>{x.tier}</span>
-            <span className="muted small">
-              {x.hours != null ? `${x.hours}h · ` : ""}
-              {x.experience_gated ? "experience-gated · " : ""}
-              {x.source}
-            </span>
-          </div>
-        ))}
-      </div>
+      {k.role_summary && <p className="muted">{k.role_summary}</p>}
+      <h3>Must have</h3>
+      <KeywordTable items={k.must_have_keywords} />
+      <h3>Good to have</h3>
+      <KeywordTable items={k.good_to_have_keywords} />
       <div className="grid">
-        <div><h4>Free (proven in bullets)</h4><Chips items={s.free_a3} tone="lime" /></div>
-        <div><h4>Learn / verify</h4>
-          <Chips items={s.tier_b.map((t) => (t.hours != null ? `${t.skill} · ${t.hours}h` : `${t.skill} · verify`))} tone="amber" />
-        </div>
-        <div><h4>Overflow</h4><Chips items={s.tier_b_overflow} /></div>
-        <div><h4>Skip (Tier C)</h4><Chips items={s.skip_tier_c} tone="coral" /></div>
-        <div><h4>Skip (years required)</h4><Chips items={s.experience_gated_skip} tone="coral" /></div>
+        <div><h4>Technical skills</h4><Chips items={uniq(k.technical_skills)} tone="lime" /></div>
+        <div><h4>Tools & platforms</h4><Chips items={uniq(k.tools_and_platforms)} tone="lime" /></div>
+        <div><h4>Soft skills</h4><Chips items={uniq(k.soft_skills)} /></div>
+        <div><h4>Domain</h4><Chips items={uniq(k.domain_keywords)} /></div>
+        <div><h4>Action verbs</h4><Chips items={uniq(k.action_verbs)} /></div>
+        <div><h4>Title variations</h4><Chips items={uniq(k.job_title_variations)} /></div>
+        <div><h4>Avoid</h4><Chips items={uniq(k.keywords_to_avoid)} tone="coral" /></div>
       </div>
-    </section>
+      {k.stretch_keywords?.length > 0 && (
+        <>
+          <h3>Stretch</h3>
+          <div className="table">
+            {k.stretch_keywords.map((x, i) => (
+              <div className="tr" key={i}>
+                <span className="badge amber">stretch</span>
+                <span className="strong">{kwText(x)}</span>
+                <span className="muted small">{x.beginner_friendly_phrasing}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      {k.sample_resume_bullets?.length > 0 && (
+        <>
+          <h3>Sample bullets</h3>
+          <ul className="muted">{k.sample_resume_bullets.map((b, i) => <li key={i}>{b}</li>)}</ul>
+        </>
+      )}
+      {k.honesty_note && <p className="faint small">{k.honesty_note}</p>}
+    </details>
   );
 }
+
+/* ------------------------------------------------------------------ page */
+const EMPTY = { resume: "ai", title: "", company: "", link: "", jd: "" };
 
 export default function Tailor() {
-  const [resume, setResume] = useState("ai");
-  const [title, setTitle] = useState("");
-  const [jd, setJd] = useState("");
+  const [form, setForm] = useState(EMPTY);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
-  const [preview, setPreview] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
+  const [selected, setSelected] = useState(new Set());
   const [done, setDone] = useState(null);
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v?.target ? v.target.value : v }));
 
-  async function run(kind) {
-    if (!title.trim() || !jd.trim()) return setError("Add a job title and paste the JD first.");
-    setBusy(kind);
+  async function runAnalyze() {
+    if (!form.title.trim() || !form.jd.trim()) return setError("Add a job title and paste the JD first.");
+    setBusy("analyze");
     setError("");
-    setPreview(null);
+    setAnalysis(null);
     setDone(null);
     try {
-      const body = { resume, title, jd };
-      if (kind === "preview") setPreview(await api.post("/compose", body));
-      else setDone(await api.post("/apply", body));
+      const a = await api.post("/analyze", {
+        resume: form.resume, title: form.title, company: form.company, jd: form.jd,
+      });
+      setAnalysis(a);
+      // safe default: must-adds already proven in your bullets
+      setSelected(new Set(a.categories.must_add.filter((i) => i.tier === "A3").map((i) => i.skill)));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -183,45 +279,78 @@ export default function Tailor() {
     }
   }
 
+  async function runApply() {
+    setBusy("apply");
+    setError("");
+    setDone(null);
+    try {
+      setDone(await api.post("/apply_selected", { analysis, selected: [...selected] }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy("");
+    }
+  }
+
+  const toggle = (skill) => setSelected((s) => {
+    const n = new Set(s);
+    n.has(skill) ? n.delete(skill) : n.add(skill);
+    return n;
+  });
+  const setAll = (items, on) => setSelected((s) => {
+    const n = new Set(s);
+    items.forEach((i) => (on ? n.add(i.skill) : n.delete(i.skill)));
+    return n;
+  });
+
   return (
     <>
       <section className="hero">
         <p className="eyebrow">Step 1</p>
         <h1>Tailor a resume<span className="lime">.</span></h1>
-        <p className="muted">Paste a JD. Crafter finds the keywords an ATS will search, then fits them into your resume without changing the layout.</p>
+        <p className="muted">Paste the job. Groq finds the ATS keywords, Crafter checks them against your resume, and you pick what goes in.</p>
       </section>
 
-      <form className="card form" onSubmit={(e) => { e.preventDefault(); run("preview"); }}>
+      <form className="card form" onSubmit={(e) => { e.preventDefault(); runAnalyze(); }}>
         <div className="field-row">
           <label className="field">
             <span>Resume</span>
-            <Segmented name="Resume" options={RESUMES} value={resume} onChange={setResume} />
+            <Segmented name="Resume" options={RESUMES} value={form.resume} onChange={set("resume")} />
           </label>
           <label className="field grow">
             <span>Job title</span>
-            <input value={title} onChange={(e) => setTitle(e.target.value)}
-                   placeholder="AI Engineer – Fresher" />
+            <input value={form.title} onChange={set("title")} placeholder="AI Engineer – Fresher" />
+          </label>
+        </div>
+        <div className="field-row">
+          <label className="field grow">
+            <span>Company</span>
+            <input value={form.company} onChange={set("company")} placeholder="Acme Labs" />
+          </label>
+          <label className="field grow">
+            <span>Job link <span className="faint">(optional)</span></span>
+            <input type="url" value={form.link} onChange={set("link")} placeholder="https://…" />
           </label>
         </div>
         <label className="field">
           <span>Job description</span>
-          <textarea value={jd} onChange={(e) => setJd(e.target.value)}
+          <textarea value={form.jd} onChange={set("jd")}
                     placeholder="Paste the full job description. Multi-line is fine." />
         </label>
         <div className="row end">
           {error && <p className="error">{error}</p>}
-          <button className="btn ghost" disabled={!!busy}>
-            {busy === "preview" ? <><span className="spin" /> Analysing…</> : "Preview"}
-          </button>
-          <button type="button" className="btn primary" disabled={!!busy} onClick={() => run("apply")}>
-            {busy === "apply" ? <><span className="spin" /> Editing resume…</> : "Add to resume"}
+          <button className="btn primary" disabled={!!busy}>
+            {busy === "analyze" ? <><span className="spin" /> Analysing…</> : "Analyze"}
           </button>
         </div>
       </form>
 
-      {done && <Viewer done={done} title={title} />}
-      {preview && <Preview c={preview.compose} />}
-      {(done || preview) && <Analysis data={(done || preview).analysis} />}
+      {analysis && (
+        <Picker data={analysis} selected={selected} onToggle={toggle} onSetAll={setAll}
+                onApply={runApply} busy={busy} />
+      )}
+      {done && <Compare key={done.file} done={done} form={form} analysis={analysis} />}
+      {analysis && <Keywords data={analysis.ats_keywords} />}
     </>
   );
 }

@@ -6,10 +6,11 @@ Discovery is dynamic, not a lookup in a fixed table:
      plus skills named in the job title.
   2. Each term is weighted by the JD's own signals: in the title, how often it is
      mentioned, under a mandatory heading, or in a sentence about ATS/keywords.
-  3. The LLM is asked what an ATS for THIS title + JD focus would also search
-     (title "AI Engineer" + JD "Python" -> LangChain, LangGraph, ...). Its terms
-     are accepted even if my vocabulary has never heard of them. The static role
-     table is only a fallback when the LLM is down or useless.
+  3. Groq (ats_keywords.py) supplies the ATS keywords for THIS title + company +
+     JD, including current buzzwords a local model does not know (LangChain,
+     LangGraph, ...). Its terms are accepted even if my vocabulary has never
+     heard of them. The local LLM, then the static role table, are only a
+     fallback when Groq is down.
   4. Every term is checked literally against the resume text; misses are
      classified (A3 free / Tier B learnable / Tier C never / unverified) and the
      mismatch is scored with the signal weights.
@@ -335,51 +336,208 @@ def _relevant(skill: str, family: str, owned) -> bool:
     return in_family or not elsewhere
 
 
+# ------------------------------------------------------------- Groq keywords
+_GROQ_RANK = {"must": 3, "good": 2, "skill": 1, "stretch": 0}
+
+
+def groq_terms(ats: dict | None) -> list[tuple[str, str, str]]:
+    """Groq keyword JSON -> [(keyword, priority, where_to_use)]. Soft skills,
+    action verbs and title variations are not resume skills, so they are left
+    out here (they are still shown in the keyword card)."""
+    if not ats or ats.get("error"):
+        return []
+    k = ats.get("keywords") or {}
+    out, seen = [], set()
+
+    def add(item, prio: str) -> None:
+        kw = item.get("keyword", "") if isinstance(item, dict) else str(item)
+        kw = kw.strip(" \t\"'`-•*.")
+        low = kw.lower()
+        if not kw or len(kw) > 60 or len(kw.split()) > 6 or low in _STOP or low in seen:
+            return
+        seen.add(low)
+        out.append((kw, prio, item.get("where_to_use", "") if isinstance(item, dict) else ""))
+
+    for it in k.get("must_have_keywords") or []:
+        add(it, "must")
+    for it in k.get("good_to_have_keywords") or []:
+        add(it, "good")
+    for key in ("technical_skills", "tools_and_platforms"):
+        for it in k.get(key) or []:
+            add(it, "skill")
+    for it in k.get("stretch_keywords") or []:
+        add(it, "stretch")
+    return out
+
+
+def resolve_term(kw: str) -> tuple[str, list[str], bool]:
+    """'JavaScript (JS)' -> ('JavaScript', ['JavaScript (JS)', 'JavaScript', 'JS'], True).
+    Returns (term, spellings to look for, known to the vocabulary)."""
+    base = re.sub(r"\s*\(.*?\)", "", kw).strip()
+    groups = [g.strip() for g in re.findall(r"\((.*?)\)", kw) if g.strip()]
+    parts = [p.strip() for g in groups for p in re.split(r"[,;]", g) if p.strip()]
+    forms = [f for f in dict.fromkeys([kw, base, *groups]) if f]
+    # inner parts ("EC2" in "AWS (EC2, S3)") only count when they are real skills
+    forms += [p for p in parts if p.lower() in _LOOKUP and p not in forms]
+    for f in forms:
+        c = _LOOKUP.get(f.lower())
+        if c:
+            return c, forms, True
+    # "Git version control", "Docker basics", "Jupyter notebooks" -> the known
+    # skill, when every other word is just filler
+    hits = _find_skills(base or kw)
+    if hits:
+        rest = base or kw
+        for _, text in hits:
+            rest = re.sub(re.escape(text), " ", rest, flags=re.I)
+        if all(w in _FILLER for w in re.findall(r"[a-z][a-z-]*", rest.lower())):
+            return hits[0][0], forms + [t for _, t in hits], True
+    return (base or kw), forms, False
+
+
+_FILLER = {"basics", "basic", "fundamentals", "exposure", "knowledge", "concepts", "skills",
+           "version", "control", "notebook", "notebooks", "tools", "tool", "framework",
+           "library", "experience", "understanding", "familiarity", "hands-on", "using",
+           "with", "of", "and", "in", "platform", "programming", "language"}
+
+
+# --------------------------------------------------------------- user choices
+def _reason(w: dict) -> str:
+    if w["experience_gated"]:
+        return "JD asks for years of experience in this"
+    t = w["tier"]
+    if t == "A3":
+        return "already proven in your project bullets: safe to add"
+    if t == "B":
+        return (f"learnable (~{w['hours']}h): learn it before the interview" if w.get("hours")
+                else "learnable: learn it before the interview")
+    if t == "C":
+        return "not something you have: don't bluff"
+    if t == "unverified":
+        return "new to your skills base: add only if you have really used it"
+    return "check you can speak to it in an interview"
+
+
+def _display(w: dict) -> str:
+    """JD/ATS wording, but proper casing when it only differs in case."""
+    jd = w.get("jd_spelling") or w["skill"]
+    return w["skill"] if jd.lower() == w["skill"].lower() else jd
+
+
+def categorize(missing: list[dict], wanted: list[dict]) -> dict:
+    """have / must_add / might_add for the picker. must_add = keywords the JD or
+    Groq rank as essential that you can honestly back up; might_add = the rest,
+    which need real work (or years) before they belong on the resume."""
+    def item(w: dict) -> dict:
+        return {"skill": w["skill"], "text": _display(w), "bucket": w["bucket"],
+                "tier": w["tier"], "hours": w.get("hours"), "freq": w.get("freq"),
+                "groq": w.get("groq"), "where_to_use": w.get("where_to_use", ""),
+                "emphasis": w["emphasis"], "experience_gated": w["experience_gated"],
+                "source": w["source"], "reason": _reason(w)}
+
+    must, might = [], []
+    for w in missing:
+        core = w.get("groq") == "must" or w["bucket"] == "required"
+        honest = not w["experience_gated"] and w["tier"] != "C"
+        (must if core and honest else might).append(item(w))
+    return {"have": [{"skill": w["skill"], "text": _display(w), "groq": w.get("groq")}
+                     for w in wanted if w["in_resume"]],
+            "must_add": must, "might_add": might}
+
+
 # ------------------------------------------------------------------------ main
-def analyze(kb: dict, variant: str, title: str, jd: str, max_new: int = MAX_NEW) -> dict:
+def analyze(kb: dict, variant: str, title: str, jd: str, max_new: int = MAX_NEW,
+            ats: dict | None = None) -> dict:
+    """`ats` = Groq keyword JSON (ats_keywords.extract_keywords). When usable it
+    replaces the local LLM as the source of ATS keywords; the local LLM and the
+    role table are only a fallback."""
     load_env()
     resume_text = ", ".join(kb["variants"][variant]["all_skills"])
     family = role_family(title, variant)
 
-    def in_resume(term: str) -> bool:
-        if term in db.SKILLS:
-            return any(rx.search(resume_text) for c, _, rx in _SPELLINGS if c == term)
-        return bool(_regex(term).search(resume_text))
+    def has(form: str) -> bool:
+        c = _LOOKUP.get(form.lower()) or (form if form in db.SKILLS else None)
+        if c:
+            return any(rx.search(resume_text) for cc, _, rx in _SPELLINGS if cc == c)
+        return bool(_regex(form).search(resume_text))
+
+    def in_resume(forms: list[str]) -> bool:
+        return any(has(f) for f in forms if f)
 
     # 1+2. what the JD (and its title) asks for, and how loudly
     jd_found = scan_jd(jd, title)
     wanted: list[dict] = []
+    index: dict[str, dict] = {}
     for term, info in jd_found.items():
-        wanted.append({"skill": term, "jd_spelling": info["jd_spelling"],
-                       "bucket": info["bucket"], "experience_gated": info["gated"],
-                       "emphasis": round(emphasis(info), 1), "known": info["known"],
-                       "in_title": info["in_title"], "ats_hint": info["hint"],
-                       "mentions": info["count"], "source": "jd"})
+        w = {"skill": term, "jd_spelling": info["jd_spelling"],
+             "bucket": info["bucket"], "experience_gated": info["gated"],
+             "emphasis": round(emphasis(info), 1), "known": info["known"],
+             "in_title": info["in_title"], "ats_hint": info["hint"],
+             "mentions": info["count"], "source": "jd", "groq": None, "where_to_use": "",
+             "aliases": [term, info["jd_spelling"]]}
+        wanted.append(w)
+        for a in w["aliases"]:
+            index.setdefault(a.lower(), w)
 
-    # 3. implied keywords: ask the LLM about THIS title + the JD's strongest terms
-    focus = [w["skill"] for w in sorted(wanted, key=lambda w: -w["emphasis"])][:12]
-    llm_raw, llm_err = llm_keywords(title, focus)
-    implied: dict[str, tuple[str, bool]] = {}   # term -> (source, known)
-    for kw in llm_raw:
-        canon = _LOOKUP.get(kw.lower())
-        if canon is None:
-            if kw not in jd_found and kw.lower() not in {t.lower() for t in jd_found}:
-                implied.setdefault(kw, ("llm", False))
-        elif (canon not in jd_found and canon not in db.TIER_C
-              and _relevant(canon, family, lambda s: in_resume(s))):
-            implied.setdefault(canon, ("llm", True))
-    if len(implied) < MIN_LLM_USABLE:        # LLM down or useless -> static fallback
-        for name, freq, _ in db.TIER_B[family]:
-            if freq in db.IMPLIED_FREQ and name not in jd_found:
-                implied.setdefault(name, ("role_table_fallback", True))
-    for term, (src, known) in list(implied.items())[:MAX_IMPLIED]:
-        wanted.append({"skill": term, "jd_spelling": term, "bucket": "implied",
-                       "experience_gated": False, "emphasis": 0.0, "known": known,
-                       "in_title": False, "ats_hint": False, "mentions": 0, "source": src})
+    # 3. ATS keywords: Groq (current buzzwords) first, local LLM only as fallback
+    terms = groq_terms(ats)
+    if terms:
+        llm = {"source": "groq", "used": True, "error": None,
+               "keywords": [t for t, _, _ in terms], "fallback_used": False}
+        added = 0
+        for kw, prio, where in terms:
+            term, forms, known = resolve_term(kw)
+            w = next((index[f.lower()] for f in [term, *forms] if f.lower() in index), None)
+            if w is not None:            # the JD already asks for it: just tag it
+                if _GROQ_RANK[prio] > _GROQ_RANK.get(w["groq"] or "", -1):
+                    w["groq"] = prio
+                w["where_to_use"] = w["where_to_use"] or where
+                if prio == "must" and w["source"] == "jd":
+                    w["emphasis"] = round(w["emphasis"] + 1.0, 1)
+                continue
+            if added >= 30:
+                continue
+            added += 1
+            w = {"skill": term, "jd_spelling": forms[1] if len(forms) > 1 else term,
+                 "bucket": "preferred" if prio == "must" else "implied",
+                 "experience_gated": False, "emphasis": 1.0 if prio == "must" else 0.0,
+                 "known": known, "in_title": False, "ats_hint": False, "mentions": 0,
+                 "source": "groq", "groq": prio, "where_to_use": where,
+                 "aliases": [term, *forms]}
+            wanted.append(w)
+            for a in w["aliases"]:
+                index.setdefault(a.lower(), w)
+    else:
+        focus = [w["skill"] for w in sorted(wanted, key=lambda w: -w["emphasis"])][:12]
+        llm_raw, llm_err = llm_keywords(title, focus)
+        groq_err = (ats or {}).get("error")
+        errors = [e for e in (groq_err and f"Groq: {groq_err}", llm_err) if e]
+        llm = {"source": "local", "used": llm_err is None,
+               "error": "; ".join(errors) or None, "keywords": llm_raw}
+        implied: dict[str, tuple[str, bool]] = {}   # term -> (source, known)
+        for kw in llm_raw:
+            canon = _LOOKUP.get(kw.lower())
+            if canon is None:
+                if kw.lower() not in index:
+                    implied.setdefault(kw, ("llm", False))
+            elif (canon not in jd_found and canon not in db.TIER_C
+                  and _relevant(canon, family, has)):
+                implied.setdefault(canon, ("llm", True))
+        if len(implied) < MIN_LLM_USABLE:        # LLM down or useless -> static fallback
+            for name, freq, _ in db.TIER_B[family]:
+                if freq in db.IMPLIED_FREQ and name not in jd_found:
+                    implied.setdefault(name, ("role_table_fallback", True))
+        llm["fallback_used"] = any(s == "role_table_fallback" for s, _ in implied.values())
+        for term, (src, known) in list(implied.items())[:MAX_IMPLIED]:
+            wanted.append({"skill": term, "jd_spelling": term, "bucket": "implied",
+                           "experience_gated": False, "emphasis": 0.0, "known": known,
+                           "in_title": False, "ats_hint": False, "mentions": 0,
+                           "source": src, "groq": None, "where_to_use": "",
+                           "aliases": [term]})
 
     # 4. literal match + classification
     for w in wanted:
-        w["in_resume"] = in_resume(w["skill"])
+        w["in_resume"] = in_resume(w["aliases"])
         w.update(tier_of(w["skill"], family, w["known"]))
 
     def value(w: dict) -> float:     # how much it is worth adding
@@ -391,7 +549,7 @@ def analyze(kb: dict, variant: str, title: str, jd: str, max_new: int = MAX_NEW)
                                 -db.FREQ_SCORE.get(w.get("freq", ""), 0),
                                 w.get("hours") or 0))
 
-    # 5. suggestions
+    # 5. suggestions (used by /compose and /apply; the picker uses `categories`)
     free = [w["skill"] for w in missing if w["tier"] == "A3"]
     gated = [w["skill"] for w in missing if w["experience_gated"] and w["tier"] != "C"]
     learn_all = [w for w in missing if w["tier"] in ("B", "unverified")
@@ -418,7 +576,7 @@ def analyze(kb: dict, variant: str, title: str, jd: str, max_new: int = MAX_NEW)
 
     after = set(free) | {t["skill"] for t in learn}
     keys = ("skill", "bucket", "tier", "freq", "hours", "jd_spelling", "source",
-            "emphasis", "experience_gated")
+            "emphasis", "experience_gated", "groq")
     return {
         "resume": variant,
         "title": title,
@@ -432,6 +590,7 @@ def analyze(kb: dict, variant: str, title: str, jd: str, max_new: int = MAX_NEW)
                                 sorted(wanted, key=lambda w: -w["emphasis"])
                                 if w["emphasis"] >= 1.5][:8],
         },
+        "categories": categorize(missing, wanted),
         "skills": {
             "matched": [w["skill"] for w in wanted if w["in_resume"]],
             "wanted_buckets": {w["skill"]: w["bucket"] for w in wanted},
@@ -445,6 +604,5 @@ def analyze(kb: dict, variant: str, title: str, jd: str, max_new: int = MAX_NEW)
             "experience_gated_skip": gated,
             "review_manually": review,
         },
-        "llm": {"used": llm_err is None, "error": llm_err, "keywords": llm_raw,
-                "fallback_used": any(s == "role_table_fallback" for s, _ in implied.values())},
+        "llm": llm,
     }

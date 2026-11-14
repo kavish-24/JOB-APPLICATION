@@ -74,10 +74,23 @@ async def read_request(request: Request) -> tuple[dict, str, dict]:
 
 @app.post("/analyze")
 async def analyze_jd(request: Request):
-    """JSON body with resume (ai|sde|fullstack), title and jd (multi-line allowed)
-    -> missing skills and mismatch percentage."""
+    """JSON body with resume (ai|sde|fullstack), title, jd (multi-line allowed) and
+    optional company. Groq finds the ATS keywords for title + company + JD; they
+    are checked against the resume and split into categories.have / must_add /
+    might_add. Nothing is edited here."""
     kb, key, body = await read_request(request)
-    return await run_in_threadpool(analyze.analyze, kb, key, body["title"], body["jd"], max_new(body))
+    title, jd, company = body["title"], body["jd"], str(body.get("company", ""))
+    keywords = await run_in_threadpool(keywords_or_error, title, jd, company)
+    analysis = await run_in_threadpool(analyze.analyze, kb, key, title, jd, max_new(body), keywords)
+    return {**analysis, "company": company, "ats_keywords": keywords}
+
+
+def keywords_or_error(title: str, jd: str, company: str) -> dict:
+    """Groq keywords for /analyze; a Groq failure must not fail the analysis."""
+    try:
+        return ats_kw.extract_keywords(title, jd, company)
+    except ats_kw.KeywordError as e:
+        return {"error": str(e)}
 
 
 @app.post("/keywords")
@@ -151,6 +164,39 @@ async def apply_to_resume(request: Request):
             "skills_lacking": jobs.lacking_from(analysis, edit)}
 
 
+@app.post("/apply_selected")
+async def apply_selected(request: Request):
+    """Body: {"analysis": <the /analyze response>, "selected": [skill, ...]}.
+    Copies the analysed resume and has the MCP tool add ONLY the selected skills
+    (add if there is room, otherwise drop a less valuable skill)."""
+    body = parse_body((await request.body()).decode("utf-8-sig"))
+    analysis, selected = body.get("analysis"), body.get("selected")
+    if not isinstance(analysis, dict) or "categories" not in analysis:
+        raise HTTPException(422, "Run /analyze first and send its result as 'analysis'")
+    if not isinstance(selected, list) or not selected:
+        raise HTTPException(422, "Select at least one skill to add")
+    kb = load_kb()
+    key = analysis.get("resume")
+    if key not in kb["variants"]:
+        raise HTTPException(404, f"Unknown resume '{key}'")
+    additions = compose.additions_for(analysis, [str(s) for s in selected])
+    if not additions:
+        raise HTTPException(422, "None of the selected skills are in the analysis")
+    slug = re.sub(r"[^a-z0-9]+", "-", str(analysis.get("title", "")).lower()).strip("-")[:40] or "role"
+    name = f"{key}_{slug}_{time.strftime('%Y%m%d-%H%M%S')}.pdf"
+    copy = OUTPUT_DIR / name
+    shutil.copy2(ROOT / kb["variants"][key]["source_file"], copy)
+    edit = await call_mcp("add_skills_to_resume", {
+        "pdf_path": str(copy),
+        "additions": additions,
+        "wanted": analysis["skills"]["wanted_buckets"],
+        "role_family": analysis["role_family"],
+    })
+    return {"file": name, "url": f"/files/{name}", "original_url": f"/resume/{key}",
+            "edit": edit, "skills_added": jobs.added_from(edit),
+            "skills_lacking": jobs.lacking_from_selection(analysis, edit)}
+
+
 # ------------------------------------------------------------- job hunt tracker
 @app.get("/api/job_hunt")
 def list_jobs():
@@ -160,6 +206,14 @@ def list_jobs():
 @app.post("/api/job_hunt", status_code=201)
 def add_job(job: jobs.JobIn):
     return jobs.create(job)
+
+
+@app.get("/api/job_hunt/{job_id}")
+def get_job(job_id: str):
+    item = next((j for j in jobs.load() if j["id"] == job_id), None)
+    if item is None:
+        raise HTTPException(404, "No such application")
+    return item
 
 
 @app.patch("/api/job_hunt/{job_id}")

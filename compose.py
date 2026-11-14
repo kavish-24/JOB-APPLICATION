@@ -65,6 +65,23 @@ def additions_from(analysis: dict) -> list[dict]:
     return adds
 
 
+def additions_for(analysis: dict, selected: list[str]) -> list[dict]:
+    """Only the skills the user ticked in the picker, best first. A user pick
+    gets +1 worth so it can displace a slightly more valuable resume item."""
+    cats = analysis["categories"]
+    pool = {i["skill"]: i for i in cats["must_add"] + cats["might_add"]}
+    adds = []
+    for s in dict.fromkeys(selected):
+        i = pool.get(s)
+        if i is None:
+            continue
+        adds.append({"skill": s, "text": i["text"], "bucket": i["bucket"], "tier": i["tier"],
+                     "bonus": min(2.0, i.get("emphasis") or 0.0)
+                              + (0.6 if i["tier"] == "A3" else 0.0) + 1.0})
+    adds.sort(key=lambda a: -(ADD_VALUE.get(a["bucket"], 3) + a["bonus"]))
+    return adds
+
+
 def plan(current: dict, additions: list[dict], wanted: dict, role_family: str) -> dict:
     """current = pdfedit.read_skills(); wanted = {skill: bucket} for the JD."""
     lines = {cat: list(items) for cat, items in current["lines"].items()}
