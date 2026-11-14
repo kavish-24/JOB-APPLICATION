@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: Object.fromEntries(
-      ["/analyze", "/compose", "/apply", "/files", "/resume", "/outputs"].map((p) => [p, target])
+      ["/api", "/analyze", "/compose", "/apply", "/files", "/resume", "/outputs"].map((p) => [p, target])
     ),
   },
 });

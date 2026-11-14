@@ -138,7 +138,8 @@ TIER_B = {
 EXTRA_B = {"Flask": ("M", 2), "SQLite": ("L", 1), "Bootstrap": ("L", 2),
            "GitHub": ("M", 1), "Unit Testing": ("M", 2), "Shell Scripting": ("M", 3),
            "Elasticsearch": ("L", 4),
-           "jQuery": ("M", 2), "SQL Server": ("M", 2), "ECMAScript": ("L", 1)}
+           "jQuery": ("M", 2), "SQL Server": ("M", 2), "ECMAScript": ("L", 1),
+           "Azure": ("L", 5), "GCP": ("L", 5), "Jenkins": ("L", 3)}
 
 FREQ_SCORE = {"H": 4, "MH": 3, "M": 2, "L": 1}
 

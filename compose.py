@@ -6,7 +6,10 @@ Rules (resume_skills_crafter.md, steps 3-5):
   * A suggested skill goes on its own category line if there is room.
   * No room -> drop the least valuable skill on that line until it fits, but an
     addition may only displace something worth LESS than itself:
-        value of an addition : required 10, preferred 4.5, implied 3
+        value of an addition : required 10, preferred 4.5, implied 4.2,
+                               plus up to +2 for JD emphasis (in title, repeated,
+                               mandatory heading, ATS hint); +0.6 if already
+                               proven in a bullet (Tier A3)
         value of a resume item: Vue.js 0 | off-role A2 1 | off-role A1 2 |
                                 on-role A2 4 | on-role A1 5 | CS fundamentals 4
   * Never drop Python / Java / JavaScript / SQL, or anything the JD wants.
@@ -22,7 +25,7 @@ import skills_db as db
 
 ROOT = Path(__file__).parent
 BUCKET_RANK = {"required": 0, "preferred": 1, "implied": 2}
-ADD_VALUE = {"required": 10, "preferred": 4.5, "implied": 3}
+ADD_VALUE = {"required": 10, "preferred": 4.5, "implied": 4.2}
 # resume lines that matter for each role family (items there are "on-role")
 CORE_LINES = {
     "ai": {"AI/ML"},
@@ -43,13 +46,22 @@ def canon(item: str) -> str | None:
 def additions_from(analysis: dict) -> list[dict]:
     """Analysis -> skills to try adding, with the JD's own spelling."""
     buckets = analysis["skills"]["wanted_buckets"]
-    spelling = {m["skill"]: m.get("jd_spelling") or m["skill"]
-                for m in analysis["skills"]["missing"]}
+    meta = {m["skill"]: m for m in analysis["skills"]["missing"]}
     sug = analysis["suggested_additions"]
     names = list(sug["free_a3"]) + [t["skill"] for t in sug["tier_b"]]
-    adds = [{"skill": s, "text": spelling.get(s, s), "bucket": buckets.get(s, "implied")}
+    def spelled(s: str) -> str:
+        """JD's own wording, but proper casing when it only differs in case."""
+        jd = meta.get(s, {}).get("jd_spelling") or s
+        return s if jd.lower() == s.lower() else jd
+
+    adds = [{"skill": s, "text": spelled(s),
+             "bucket": buckets.get(s, "implied"),
+             # JD emphasis (title, repetition, mandatory, ATS hint) raises its worth
+             "bonus": min(2.0, meta.get(s, {}).get("emphasis", 0.0))
+                      + (0.6 if meta.get(s, {}).get("tier") == "A3" else 0.0),  # proven = no risk
+             "tier": meta.get(s, {}).get("tier", "")}
             for s in names]
-    adds.sort(key=lambda a: BUCKET_RANK.get(a["bucket"], 2))  # stable
+    adds.sort(key=lambda a: -(ADD_VALUE.get(a["bucket"], 3) + a["bonus"]))
     return adds
 
 
@@ -88,7 +100,7 @@ def plan(current: dict, additions: list[dict], wanted: dict, role_family: str) -
         cat = db.CATEGORY_OF.get(skill, db.DEFAULT_CATEGORY)
         if cat not in lines:
             cat = db.DEFAULT_CATEGORY if db.DEFAULT_CATEGORY in lines else next(iter(lines))
-        worth = ADD_VALUE.get(add["bucket"], 3)
+        worth = ADD_VALUE.get(add["bucket"], 3) + add.get("bonus", 0)
         trial, dropped = list(lines[cat]), []
         while width(cat, trial + [text]) > avail:
             cands = [i for i in trial if removable(i) and item_value(cat, i) < worth]
@@ -109,7 +121,9 @@ def plan(current: dict, additions: list[dict], wanted: dict, role_family: str) -
                    else "not in JD, space needed")
             changelog.append({"action": "removed", "skill": d, "category": cat, "reason": why})
         changelog.append({"action": "added", "skill": text, "category": cat,
-                          "reason": f"{add['bucket']} JD keyword"})
+                          "reason": f"{add['bucket']} JD keyword" + (
+                              " (unverified: check you can speak to it)"
+                              if add.get("tier") == "unverified" else "")})
 
     # order inside each line: required -> preferred -> implied -> rest (stable)
     def rank(item: str) -> int:

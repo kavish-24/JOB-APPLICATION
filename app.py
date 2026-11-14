@@ -16,7 +16,9 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 import analyze
+import ats_keywords as ats_kw
 import compose
+import jobs
 import scan
 
 app = FastAPI(title="Resume Skills Knowledge Base")
@@ -40,7 +42,7 @@ def variant(key: str) -> dict:
 
 @app.get("/")
 def index():
-    return {"routes": ["/ai", "/sde", "/fullstack", "/rescan"],
+    return {"routes": ["/ai", "/sde", "/fullstack", "/rescan", "/keywords"],
             "generated_at": load_kb()["generated_at"]}
 
 
@@ -75,11 +77,34 @@ async def analyze_jd(request: Request):
     """JSON body with resume (ai|sde|fullstack), title and jd (multi-line allowed)
     -> missing skills and mismatch percentage."""
     kb, key, body = await read_request(request)
-    return await run_in_threadpool(analyze.analyze, kb, key, body["title"], body["jd"])
+    return await run_in_threadpool(analyze.analyze, kb, key, body["title"], body["jd"], max_new(body))
 
 
-def analyze_and_compose(kb: dict, key: str, title: str, jd: str) -> dict:
-    analysis = analyze.analyze(kb, key, title, jd)
+@app.post("/keywords")
+async def ats_keywords(request: Request):
+    """JSON body with title, jd (and optional company) -> ATS keyword JSON from
+    Groq. Keyword output only: does not analyse or edit any resume."""
+    body = parse_body((await request.body()).decode("utf-8-sig"))
+    missing = [k for k in ("title", "jd") if not str(body.get(k, "")).strip()]
+    if missing:
+        raise HTTPException(422, f"Missing field(s): {', '.join(missing)}")
+    try:
+        return await run_in_threadpool(ats_kw.extract_keywords, str(body["title"]),
+                                       str(body["jd"]), str(body.get("company", "")))
+    except ats_kw.KeywordError as e:
+        raise HTTPException(502, str(e))
+
+
+def max_new(body: dict) -> int:
+    """Optional body field: how many unproven skills (Tier B / unverified) to add."""
+    try:
+        return max(0, min(12, int(body.get("max_new", analyze.MAX_NEW))))
+    except (TypeError, ValueError):
+        return analyze.MAX_NEW
+
+
+def analyze_and_compose(kb: dict, key: str, title: str, jd: str, limit: int) -> dict:
+    analysis = analyze.analyze(kb, key, title, jd, limit)
     return {"analysis": analysis, "compose": compose.compose(kb, key, analysis)}
 
 
@@ -88,7 +113,7 @@ async def compose_skills(request: Request):
     """Same body as /analyze -> analysis + the rewritten TECHNICAL SKILLS section
     (same space: adds if there is room, otherwise drops the least useful skill)."""
     kb, key, body = await read_request(request)
-    return await run_in_threadpool(analyze_and_compose, kb, key, body["title"], body["jd"])
+    return await run_in_threadpool(analyze_and_compose, kb, key, body["title"], body["jd"], max_new(body))
 
 
 async def call_mcp(tool: str, arguments: dict) -> dict:
@@ -110,7 +135,7 @@ async def apply_to_resume(request: Request):
     """Analyse the JD, copy the chosen resume, and have the MCP tool put the skills
     into the copy (add if there is room, otherwise drop the least valuable skill)."""
     kb, key, body = await read_request(request)
-    analysis = await run_in_threadpool(analyze.analyze, kb, key, body["title"], body["jd"])
+    analysis = await run_in_threadpool(analyze.analyze, kb, key, body["title"], body["jd"], max_new(body))
     slug = re.sub(r"[^a-z0-9]+", "-", body["title"].lower()).strip("-")[:40] or "role"
     name = f"{key}_{slug}_{time.strftime('%Y%m%d-%H%M%S')}.pdf"
     copy = OUTPUT_DIR / name
@@ -122,7 +147,33 @@ async def apply_to_resume(request: Request):
         "role_family": analysis["role_family"],
     })
     return {"file": name, "url": f"/files/{name}", "original_url": f"/resume/{key}",
-            "analysis": analysis, "edit": edit}
+            "analysis": analysis, "edit": edit,
+            "skills_lacking": jobs.lacking_from(analysis, edit)}
+
+
+# ------------------------------------------------------------- job hunt tracker
+@app.get("/api/job_hunt")
+def list_jobs():
+    return {"jobs": jobs.load(), "stages": jobs.STAGES}
+
+
+@app.post("/api/job_hunt", status_code=201)
+def add_job(job: jobs.JobIn):
+    return jobs.create(job)
+
+
+@app.patch("/api/job_hunt/{job_id}")
+def edit_job(job_id: str, patch: jobs.JobPatch):
+    item = jobs.update(job_id, patch)
+    if item is None:
+        raise HTTPException(404, "No such application")
+    return item
+
+
+@app.delete("/api/job_hunt/{job_id}", status_code=204)
+def remove_job(job_id: str):
+    if not jobs.delete(job_id):
+        raise HTTPException(404, "No such application")
 
 
 @app.get("/files/{name}")
