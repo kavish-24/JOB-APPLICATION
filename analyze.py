@@ -302,10 +302,12 @@ def llm_keywords(title: str, focus: list[str]) -> tuple[list[str], str | None]:
 
 
 # --------------------------------------------------------------- classification
-def tier_of(skill: str, family: str, known: bool = True) -> dict:
-    if skill.lower() in _TIER_C_LOWER or skill in db.TIER_C:
+def tier_of(skill: str, family: str, known: bool = True, personal: bool = True) -> dict:
+    """personal = the resume owner's own curated tiers (Tier C "never", Tier A3
+    "proven in bullets") apply. For anyone else's resume they do not."""
+    if personal and (skill.lower() in _TIER_C_LOWER or skill in db.TIER_C):
         return {"tier": "C"}
-    if skill in db.TIER_A3:
+    if personal and skill in db.TIER_A3:
         return {"tier": "A3"}
     for name, freq, hours in db.TIER_B[family]:
         if name == skill:
@@ -452,8 +454,13 @@ def analyze(kb: dict, variant: str, title: str, jd: str, max_new: int = MAX_NEW,
     replaces the local LLM as the source of ATS keywords; the local LLM and the
     role table are only a fallback."""
     load_env()
-    resume_text = ", ".join(kb["variants"][variant]["all_skills"])
-    family = role_family(title, variant)
+    v = kb["variants"][variant]
+    resume_text = ", ".join(v["all_skills"])
+    personal = v.get("personal", False)
+    body_text = v.get("body_text", "")
+    # internal skill profile only: from the job title, else the user's own
+    # category name; categories outside ai/sde/fullstack use "general"
+    family = role_family(title, role_family(f"{v.get('label', '')} {variant}", "general"))
 
     def has(form: str) -> bool:
         c = _LOOKUP.get(form.lower()) or (form if form in db.SKILLS else None)
@@ -536,9 +543,21 @@ def analyze(kb: dict, variant: str, title: str, jd: str, max_new: int = MAX_NEW,
                            "aliases": [term]})
 
     # 4. literal match + classification
+    def proven(forms: list[str]) -> bool:      # named in experience / projects text
+        for f in forms:
+            if not f:
+                continue
+            c = _LOOKUP.get(f.lower())
+            rxs = [rx for cc, _, rx in _SPELLINGS if cc == c] if c else [_regex(f)]
+            if any(rx.search(body_text) for rx in rxs):
+                return True
+        return False
+
     for w in wanted:
         w["in_resume"] = in_resume(w["aliases"])
-        w.update(tier_of(w["skill"], family, w["known"]))
+        w.update(tier_of(w["skill"], family, w["known"], personal))
+        if not personal and not w["in_resume"] and w["tier"] != "A3" and proven(w["aliases"]):
+            w.update({"tier": "A3", "freq": w.get("freq"), "hours": None})
 
     def value(w: dict) -> float:     # how much it is worth adding
         return WEIGHTS[w["bucket"]] * 3 + w["emphasis"]
@@ -581,6 +600,7 @@ def analyze(kb: dict, variant: str, title: str, jd: str, max_new: int = MAX_NEW,
         "resume": variant,
         "title": title,
         "role_family": family,
+        "personal": personal,
         "mismatch": score(set()),
         "mismatch_after_suggested_additions_pct": score(after)["overall_mismatch_pct"],
         "signals": {

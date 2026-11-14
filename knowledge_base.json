@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T17:58:55.205684+00:00",
+  "generated_at": "2026-11-14T20:54:59.432253+00:00",
   "variants": {
     "ai": {
       "source_file": "resume/AI_ML/Kavish_Toraskar_Resume.pdf",
@@ -69,54 +69,285 @@
           "SDLC"
         ]
       },
-      "layout": {
-        "AI/ML": {
-          "chars": 134,
-          "max_chars": 134
-        },
-        "Languages": {
-          "chars": 48,
-          "max_chars": 135
-        },
-        "Backend": {
-          "chars": 75,
-          "max_chars": 133
-        },
-        "Databases": {
-          "chars": 57,
-          "max_chars": 124
-        },
-        "Frontend & Mobile": {
-          "chars": 66,
-          "max_chars": 134
-        },
-        "Tools & DevOps": {
-          "chars": 72,
-          "max_chars": 134
-        },
-        "CS Fundamentals": {
-          "chars": 62,
-          "max_chars": 125
-        }
+      "skills_section": {
+        "page": 0,
+        "found_by": "heading",
+        "heading": "TECHNICAL SKILLS",
+        "region": [
+          27.0,
+          117.39,
+          612.0,
+          213.45
+        ],
+        "right": 585.43,
+        "reorderable": true,
+        "entries": [
+          {
+            "label": "AI/ML",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 141.75,
+                "x1": 581.0,
+                "rect": [
+                  58.5,
+                  133.73,
+                  581.0,
+                  143.7
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "AI/ML: PyTorch, Transformers, Whisper fine-tuning, RAG pipelines, LLMs (Google Gemini), Voice Agents, VAD, Scikit-learn, Pandas, NumPy",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "PyTorch",
+              "Transformers",
+              "Whisper fine-tuning",
+              "RAG pipelines",
+              "LLMs (Google Gemini)",
+              "Voice Agents",
+              "VAD",
+              "Scikit-learn",
+              "Pandas",
+              "NumPy"
+            ],
+            "key": "AI/ML"
+          },
+          {
+            "label": "Languages",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 153.75,
+                "x1": 242.89,
+                "rect": [
+                  58.5,
+                  145.73,
+                  242.89,
+                  155.7
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Languages: Python, Java, JavaScript, C++, C, SQL",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Python",
+              "Java",
+              "JavaScript",
+              "C++",
+              "C",
+              "SQL"
+            ],
+            "key": "Languages"
+          },
+          {
+            "label": "Backend",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 165.0,
+                "x1": 350.69,
+                "rect": [
+                  58.5,
+                  156.98,
+                  350.69,
+                  166.95
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Backend: FastAPI, Node.js, Express, Java Spring Boot, REST APIs, WebSockets",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "FastAPI",
+              "Node.js",
+              "Express",
+              "Java Spring Boot",
+              "REST APIs",
+              "WebSockets"
+            ],
+            "key": "Backend"
+          },
+          {
+            "label": "Databases",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 176.25,
+                "x1": 295.23,
+                "rect": [
+                  58.5,
+                  168.23,
+                  295.23,
+                  178.2
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Databases: MySQL, MongoDB, Supabase, Firebase Realtime DB",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "MySQL",
+              "MongoDB",
+              "Supabase",
+              "Firebase Realtime DB"
+            ],
+            "key": "Databases"
+          },
+          {
+            "label": "Frontend & Mobile",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 188.25,
+                "x1": 312.76,
+                "rect": [
+                  58.5,
+                  180.23,
+                  312.76,
+                  190.2
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Frontend & Mobile: React, Next.js, React Native, Vue.js, HTML, CSS",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "React",
+              "Next.js",
+              "React Native",
+              "Vue.js",
+              "HTML",
+              "CSS"
+            ],
+            "key": "Frontend & Mobile"
+          },
+          {
+            "label": "Tools & DevOps",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 199.5,
+                "x1": 336.09,
+                "rect": [
+                  58.5,
+                  191.48,
+                  336.09,
+                  201.45
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Tools & DevOps: Git, Kubernetes (kubectl), Kibana, Selenium, Claude Code",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Git",
+              "Kubernetes (kubectl)",
+              "Kibana",
+              "Selenium",
+              "Claude Code"
+            ],
+            "key": "Tools & DevOps"
+          },
+          {
+            "label": "CS Fundamentals",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 211.5,
+                "x1": 313.76,
+                "rect": [
+                  58.5,
+                  203.48,
+                  313.76,
+                  213.45
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "CS Fundamentals: Data Structures & Algorithms, OOP, DBMS, SDLC",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Data Structures & Algorithms",
+              "OOP",
+              "DBMS",
+              "SDLC"
+            ],
+            "key": "CS Fundamentals"
+          }
+        ]
       },
       "extra_keywords": {
-        "Project Tech Stack": [
-          "React Native",
-          "Node.js",
-          "Express",
-          "MongoDB",
-          "Firebase Realtime DB",
-          "FCM",
-          "Leaflet",
-          "OSM",
-          "Face Recognition"
-        ],
         "AI & Generative AI": [
           "LangChain",
           "LangGraph",
           "RAG",
           "MCP Tools",
           "Vector Databases"
+        ],
+        "Tech": [
+          "FCM",
+          "Leaflet",
+          "OSM",
+          "Face Recognition"
         ]
       },
       "all_skills": [
@@ -171,167 +402,17 @@
         "WebSockets",
         "Whisper fine-tuning"
       ],
-      "total_skills": 50
-    },
-    "sde": {
-      "source_file": "resume/SDE/Kavish_Toraskar.pdf",
-      "category_order": [
-        "Languages",
-        "Backend",
-        "Frontend & Mobile",
-        "Databases",
-        "AI/ML",
-        "Tools & DevOps",
-        "CS Fundamentals"
-      ],
-      "skills": {
-        "Languages": [
-          "Python",
-          "Java",
-          "JavaScript",
-          "C++",
-          "C",
-          "SQL"
-        ],
-        "Backend": [
-          "FastAPI",
-          "Node.js",
-          "Express",
-          "Java Spring Boot",
-          "REST APIs",
-          "WebSockets"
-        ],
-        "Frontend & Mobile": [
-          "React",
-          "Next.js",
-          "React Native",
-          "Vue.js",
-          "HTML",
-          "CSS"
-        ],
-        "Databases": [
-          "MySQL",
-          "MongoDB",
-          "Supabase",
-          "Firebase Realtime DB"
-        ],
-        "AI/ML": [
-          "PyTorch",
-          "Transformers",
-          "Whisper fine-tuning",
-          "RAG pipelines",
-          "LLMs (Google Gemini)",
-          "Voice Agents",
-          "VAD",
-          "Scikit-learn",
-          "Pandas",
-          "NumPy"
-        ],
-        "Tools & DevOps": [
-          "Git",
-          "Kubernetes (kubectl)",
-          "Kibana",
-          "Selenium",
-          "Claude Code"
-        ],
-        "CS Fundamentals": [
-          "Data Structures & Algorithms",
-          "OOP",
-          "DBMS",
-          "SDLC"
-        ]
+      "total_skills": 50,
+      "body_text": "Kavish Toraskar\n+91 7507478964 | kavishtoraskar24@gmail.com | github.com/kavish-24 | leetcode.com/Kavish24 | Goa, India\nSUMMARY\nAI/ML-focused Software Engineer (B.E. IT, Data Science minor, 2026) with hands-on experience shipping applied AI: a real-time customer-care voice\nagent on Gemini 2.5 Flash Native Audio, RAG pipelines, and a Whisper ASR model fine-tuned for low-resource Konkani (WER 120 → 39). Backed by\nproduction backend experience in Python/FastAPI and Java Spring Boot from an insurtech internship. Seeking full-time AI/ML Engineer roles.\nEXPERIENCE\nTech Intern – Turtlemint(Apr 2026 – Sep 2026)\nDeveloped a real-time customer-care voice agent on Google's low-latency Gemini 2.5 Flash Native Audio model, with code-level guardrails that\nkeep the agent strictly following company SOPs.\nBuilt the agent's knowledge base using Gemini Pro to support accurate information retrieval and process guidance.\nIntegrated insurer (partner) APIs with Turtlemint's backend by mapping internal data to each insurer's required request body, ensuring accurate\ndata flow across platforms.\nBuilt add-on eligibility rule logic that blocks unsupported or conflicting add-on combinations (e.g. restricting certain add-ons for EVs older than 2\nyears) before requests reach the insurer, preventing backend failures.\nFixed KYC validation flow issues in customer purchase journeys and worked on the insurance proposal flow.\nReproduced and debugged MIS reporting page errors and other production issues in Java Spring Boot services, using Claude Code to analyse the\ncodebase and kubectl and Kibana to trace live logs.\nBackend Developer Intern – Freethink(Jul 2025 – Sep 2025)\nDeveloped REST APIs, auth modules, and backend services using Node.js, Express and MySQL.\nRedesigned database schemas around primary/foreign-key lookups to eliminate unnecessary multi-table joins, speeding up API responses.\nIntegrated OpenRouteService for ATS-style candidate–job scoring.\nBuilt real-time messaging & notifications using WebSockets; implemented Supabase for secure profile and resume storage.\nPROJECTS\nAshwaasAI – Konkani Voice Mental Health Assistant– Whisper Fine-Tuning, RAG, LLMs | GitHub\nFine-tuned Whisper from a Marathi base model on 4+ hours of self-cleaned Konkani audio (VAD, custom normalization), reducing WER from\n120 to 39 for a low-resource language.\nBuilt an automated Gemini + Selenium pipeline to match and validate transcripts, plus a real-time inference system for live speech.\nDesigned a RAG-based recovery algorithm for imperfect ASR output: retrieved the closest matching sentences from a curated knowledge base,\nfiltered them to rebuild context, then translated to English and passed it to a reasoning LLM for query resolution.\nShipped it as a voice-first support app for Konkani-speaking students with empathetic LLM responses, guided breathing exercises and persistent\nconversation history.\nDocument Assistant– RAG-based Document Search & Summarization | GitHub\nAI & Generative AI: LangChain, LangGraph, RAG, MCP Tools, Vector Databases\nBuilt a Next.js app with document upload, semantic search and chat-style Q&A over PDF/DOCX files.\nImplemented RAG pipelines in PyTorch for embedding, indexing and reference-based retrieval, plus automated summarization; used Supabase\nfor file storage and metadata.\nE-Bandobast – Police Deployment & Supervision System(Winner, Goa Police Hackathon 2025) | GitHub (backend)\nTech: React Native, Node.js, Express, MongoDB, Firebase Realtime DB, FCM, Leaflet, OSM, Face Recognition\nBuilt a role-based police deployment platform with live officer tracking via Firebase Realtime DB, deployed behind a restricted police-only login.\nDeveloped a React Native app for officer check-in via face recognition with real-time updates and FCM duty alerts.\nImplemented polygon-based zone mapping with Leaflet + OSM, and one-click deployment that parses Excel rosters and auto-assigns officers to\nzones.\nEDUCATION\nB.E. in Information Technology (Minor: Data Science) – Goa College of Engineering, Ponda | Aug 2022 – Aug 2026 | CGPA: 7.9\nHSSC – St. Xavier's Higher Secondary, Mapusa | 2022 | 70%\nSSC – Chubby Cheeks Spring Valley, Porvorim | 2020 | 80%\nACHIEVEMENTS & CERTIFICATIONS\nWinner – Goa Police Hackathon (2025) for building the E-Bandobast Deployment System.\nEthical Hacking – NPTEL (2024)",
+      "header": {
+        "name": "Kavish Toraskar",
+        "contact": "+91 7507478964 | kavishtoraskar24@gmail.com | github.com/kavish-24 | leetcode.com/Kavish24 | Goa, India"
       },
-      "layout": {
-        "Languages": {
-          "chars": 48,
-          "max_chars": 135
-        },
-        "Backend": {
-          "chars": 75,
-          "max_chars": 133
-        },
-        "Frontend & Mobile": {
-          "chars": 66,
-          "max_chars": 134
-        },
-        "Databases": {
-          "chars": 57,
-          "max_chars": 124
-        },
-        "AI/ML": {
-          "chars": 134,
-          "max_chars": 134
-        },
-        "Tools & DevOps": {
-          "chars": 72,
-          "max_chars": 134
-        },
-        "CS Fundamentals": {
-          "chars": 62,
-          "max_chars": 125
-        }
-      },
-      "extra_keywords": {
-        "Project Tech Stack": [
-          "React Native",
-          "Node.js",
-          "Express",
-          "MongoDB",
-          "Firebase Realtime DB",
-          "FCM",
-          "Leaflet",
-          "OSM",
-          "Face Recognition"
-        ]
-      },
-      "all_skills": [
-        "C",
-        "C++",
-        "Claude Code",
-        "CSS",
-        "Data Structures & Algorithms",
-        "DBMS",
-        "Express",
-        "Face Recognition",
-        "FastAPI",
-        "FCM",
-        "Firebase Realtime DB",
-        "Git",
-        "HTML",
-        "Java",
-        "Java Spring Boot",
-        "JavaScript",
-        "Kibana",
-        "Kubernetes (kubectl)",
-        "Leaflet",
-        "LLMs (Google Gemini)",
-        "MongoDB",
-        "MySQL",
-        "Next.js",
-        "Node.js",
-        "NumPy",
-        "OOP",
-        "OSM",
-        "Pandas",
-        "Python",
-        "PyTorch",
-        "RAG pipelines",
-        "React",
-        "React Native",
-        "REST APIs",
-        "Scikit-learn",
-        "SDLC",
-        "Selenium",
-        "SQL",
-        "Supabase",
-        "Transformers",
-        "VAD",
-        "Voice Agents",
-        "Vue.js",
-        "WebSockets",
-        "Whisper fine-tuning"
-      ],
-      "total_skills": 45
+      "tag": "ai",
+      "folder": "AI_ML",
+      "label": "AI / ML",
+      "personal": true,
+      "uploaded_at": "2026-11-13T13:41:56+00:00"
     },
     "fullstack": {
       "source_file": "resume/FULL_STACK/Kavish_Toraskar.pdf",
@@ -401,43 +482,274 @@
           "SDLC"
         ]
       },
-      "layout": {
-        "Languages": {
-          "chars": 48,
-          "max_chars": 135
-        },
-        "Frontend & Mobile": {
-          "chars": 66,
-          "max_chars": 134
-        },
-        "Backend": {
-          "chars": 75,
-          "max_chars": 133
-        },
-        "Databases": {
-          "chars": 57,
-          "max_chars": 124
-        },
-        "AI/ML": {
-          "chars": 134,
-          "max_chars": 134
-        },
-        "Tools & DevOps": {
-          "chars": 72,
-          "max_chars": 134
-        },
-        "CS Fundamentals": {
-          "chars": 62,
-          "max_chars": 125
-        }
+      "skills_section": {
+        "page": 0,
+        "found_by": "heading",
+        "heading": "TECHNICAL SKILLS",
+        "region": [
+          27.0,
+          128.64,
+          612.0,
+          223.95
+        ],
+        "right": 585.43,
+        "reorderable": true,
+        "entries": [
+          {
+            "label": "Languages",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 153.0,
+                "x1": 242.89,
+                "rect": [
+                  58.5,
+                  144.98,
+                  242.89,
+                  154.95
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Languages: Python, Java, JavaScript, C++, C, SQL",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Python",
+              "Java",
+              "JavaScript",
+              "C++",
+              "C",
+              "SQL"
+            ],
+            "key": "Languages"
+          },
+          {
+            "label": "Frontend & Mobile",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 165.0,
+                "x1": 312.76,
+                "rect": [
+                  58.5,
+                  156.98,
+                  312.76,
+                  166.95
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Frontend & Mobile: React, Next.js, React Native, Vue.js, HTML, CSS",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "React",
+              "Next.js",
+              "React Native",
+              "Vue.js",
+              "HTML",
+              "CSS"
+            ],
+            "key": "Frontend & Mobile"
+          },
+          {
+            "label": "Backend",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 176.25,
+                "x1": 350.69,
+                "rect": [
+                  58.5,
+                  168.23,
+                  350.69,
+                  178.2
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Backend: FastAPI, Node.js, Express, Java Spring Boot, REST APIs, WebSockets",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "FastAPI",
+              "Node.js",
+              "Express",
+              "Java Spring Boot",
+              "REST APIs",
+              "WebSockets"
+            ],
+            "key": "Backend"
+          },
+          {
+            "label": "Databases",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 187.5,
+                "x1": 295.23,
+                "rect": [
+                  58.5,
+                  179.48,
+                  295.23,
+                  189.45
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Databases: MySQL, MongoDB, Supabase, Firebase Realtime DB",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "MySQL",
+              "MongoDB",
+              "Supabase",
+              "Firebase Realtime DB"
+            ],
+            "key": "Databases"
+          },
+          {
+            "label": "AI/ML",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 199.5,
+                "x1": 581.0,
+                "rect": [
+                  58.5,
+                  191.48,
+                  581.0,
+                  201.45
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "AI/ML: PyTorch, Transformers, Whisper fine-tuning, RAG pipelines, LLMs (Google Gemini), Voice Agents, VAD, Scikit-learn, Pandas, NumPy",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "PyTorch",
+              "Transformers",
+              "Whisper fine-tuning",
+              "RAG pipelines",
+              "LLMs (Google Gemini)",
+              "Voice Agents",
+              "VAD",
+              "Scikit-learn",
+              "Pandas",
+              "NumPy"
+            ],
+            "key": "AI/ML"
+          },
+          {
+            "label": "Tools & DevOps",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 210.75,
+                "x1": 336.09,
+                "rect": [
+                  58.5,
+                  202.73,
+                  336.09,
+                  212.7
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Tools & DevOps: Git, Kubernetes (kubectl), Kibana, Selenium, Claude Code",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Git",
+              "Kubernetes (kubectl)",
+              "Kibana",
+              "Selenium",
+              "Claude Code"
+            ],
+            "key": "Tools & DevOps"
+          },
+          {
+            "label": "CS Fundamentals",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 222.0,
+                "x1": 313.76,
+                "rect": [
+                  58.5,
+                  213.98,
+                  313.76,
+                  223.95
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "CS Fundamentals: Data Structures & Algorithms, OOP, DBMS, SDLC",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Data Structures & Algorithms",
+              "OOP",
+              "DBMS",
+              "SDLC"
+            ],
+            "key": "CS Fundamentals"
+          }
+        ]
       },
       "extra_keywords": {
-        "Project Tech Stack": [
-          "React Native",
-          "Node.js",
-          "Express",
-          "MongoDB",
-          "Firebase Realtime DB",
+        "Tech": [
           "FCM",
           "Leaflet",
           "OSM",
@@ -491,7 +803,845 @@
         "WebSockets",
         "Whisper fine-tuning"
       ],
-      "total_skills": 45
+      "total_skills": 45,
+      "body_text": "Kavish Toraskar\n+91 7507478964 | kavishtoraskar24@gmail.com | github.com/kavish-24 | leetcode.com/Kavish24 | Goa, India\nSUMMARY\nFull Stack Developer (B.E. IT, 2026) with two backend internships and a hackathon-winning full-stack product. Builds REST APIs in Node.js/Express,\nPython/FastAPI and Java Spring Boot, frontends in React, Next.js and React Native, and integrates AI features such as RAG and voice agents.\nExperienced with SQL/NoSQL schema design, real-time systems (WebSockets, Firebase, FCM) and third-party API integrations. Seeking full-time Full\nStack / Software Engineer roles.\nEXPERIENCE\nTech Intern – Turtlemint(Apr 2026 – Sep 2026)\nDeveloped a real-time customer-care voice agent on Google's low-latency Gemini 2.5 Flash Native Audio model, with code-level guardrails that\nkeep the agent strictly following company SOPs.\nBuilt the agent's knowledge base using Gemini Pro to support accurate information retrieval and process guidance.\nIntegrated insurer (partner) APIs with Turtlemint's backend by mapping internal data to each insurer's required request body, ensuring accurate\ndata flow across platforms.\nBuilt add-on eligibility rule logic that blocks unsupported or conflicting add-on combinations (e.g. restricting certain add-ons for EVs older than 2\nyears) before requests reach the insurer, preventing backend failures.\nFixed KYC validation flow issues in customer purchase journeys and worked on the insurance proposal flow.\nReproduced and debugged MIS reporting page errors and other production issues in Java Spring Boot services, using Claude Code to analyse the\ncodebase and kubectl and Kibana to trace live logs.\nBackend Developer Intern – Freethink(Jul 2025 – Sep 2025)\nDeveloped REST APIs, auth modules, and backend services using Node.js, Express and MySQL.\nRedesigned database schemas around primary/foreign-key lookups to eliminate unnecessary multi-table joins, speeding up API responses.\nIntegrated OpenRouteService for ATS-style candidate–job scoring.\nBuilt real-time messaging & notifications using WebSockets; implemented Supabase for secure profile and resume storage.\nPROJECTS\nE-Bandobast – Police Deployment & Supervision System(Winner, Goa Police Hackathon 2025) | GitHub (backend)\nTech: React Native, Node.js, Express, MongoDB, Firebase Realtime DB, FCM, Leaflet, OSM, Face Recognition\nBuilt a role-based police deployment platform with live officer tracking via Firebase Realtime DB, deployed behind a restricted police-only login.\nDeveloped a React Native app for officer check-in via face recognition with real-time updates and FCM duty alerts.\nImplemented polygon-based zone mapping with Leaflet + OSM, and one-click deployment that parses Excel rosters and auto-assigns officers to\nzones.\nDocument Assistant– RAG-based Document Search & Summarization | GitHub\nBuilt a Next.js app with document upload, semantic search and chat-style Q&A over PDF/DOCX files.\nImplemented RAG pipelines in PyTorch for embedding, indexing and reference-based retrieval, plus automated summarization; used Supabase\nfor file storage and metadata.\nAshwaasAI – Konkani Voice Mental Health Assistant– Whisper Fine-Tuning, RAG, LLMs | GitHub\nFine-tuned Whisper from a Marathi base model on 4+ hours of self-cleaned Konkani audio (VAD, custom normalization), reducing WER from\n120 to 39 for a low-resource language.\nBuilt an automated Gemini + Selenium pipeline to match and validate transcripts, plus a real-time inference system for live speech.\nDesigned a RAG-based recovery algorithm for imperfect ASR output: retrieved the closest matching sentences from a curated knowledge base,\nfiltered them to rebuild context, then translated to English and passed it to a reasoning LLM for query resolution.\nShipped it as a voice-first support app for Konkani-speaking students with empathetic LLM responses, guided breathing exercises and persistent\nconversation history.\nEDUCATION\nB.E. in Information Technology (Minor: Data Science) – Goa College of Engineering, Ponda | Aug 2022 – Aug 2026 | CGPA: 7.9\nHSSC – St. Xavier's Higher Secondary, Mapusa | 2022 | 70%\nSSC – Chubby Cheeks Spring Valley, Porvorim | 2020 | 80%\nACHIEVEMENTS & CERTIFICATIONS\nWinner – Goa Police Hackathon (2025) for building the E-Bandobast Deployment System.\nEthical Hacking – NPTEL (2024)",
+      "header": {
+        "name": "Kavish Toraskar",
+        "contact": "+91 7507478964 | kavishtoraskar24@gmail.com | github.com/kavish-24 | leetcode.com/Kavish24 | Goa, India"
+      },
+      "tag": "fullstack",
+      "folder": "FULL_STACK",
+      "label": "Full Stack",
+      "personal": true,
+      "uploaded_at": "2026-11-04T14:48:37+00:00"
+    },
+    "intern": {
+      "source_file": "resume/INTERN/Kavish_Toraskar_1.pdf",
+      "category_order": [
+        "Languages",
+        "Web & Backend",
+        "Frontend",
+        "Databases",
+        "AI/ML",
+        "Tools & DevOps",
+        "CS Fundamentals",
+        "Soft Skills"
+      ],
+      "skills": {
+        "Languages": [
+          "C",
+          "C++",
+          "Python",
+          "Java",
+          "JavaScript",
+          "Kotlin (basic)"
+        ],
+        "Web & Backend": [
+          "Node.js",
+          "Express",
+          "FastAPI",
+          "PHP",
+          "Java (Play Framework)"
+        ],
+        "Frontend": [
+          "React",
+          "Vue.js",
+          "Next.js",
+          "HTML",
+          "CSS"
+        ],
+        "Databases": [
+          "MySQL",
+          "MongoDB",
+          "Supabase"
+        ],
+        "AI/ML": [
+          "Whisper fine-tuning",
+          "RAG pipelines",
+          "PyTorch",
+          "Transformers",
+          "VAD",
+          "Scikit-learn",
+          "Pandas",
+          "NumPy"
+        ],
+        "Tools & DevOps": [
+          "Git",
+          "Selenium",
+          "Kubernetes",
+          "Power BI (beginner)"
+        ],
+        "CS Fundamentals": [
+          "Data Structures & Algorithms",
+          "OOP",
+          "SDLC"
+        ],
+        "Soft Skills": [
+          "Problem-solving",
+          "Team Collaboration",
+          "Time Management"
+        ]
+      },
+      "skills_section": {
+        "page": 0,
+        "found_by": "heading",
+        "heading": "SKILLS",
+        "region": [
+          24.96,
+          566.95,
+          612.0,
+          663.25
+        ],
+        "right": 590.03,
+        "reorderable": true,
+        "entries": [
+          {
+            "label": "Languages",
+            "slots": [
+              {
+                "x": 60.98,
+                "y": 588.01,
+                "x1": 256.94,
+                "rect": [
+                  60.98,
+                  580.85,
+                  256.94,
+                  589.75
+                ],
+                "size": 8.04,
+                "color": 4473924,
+                "text": "Languages: C, C++, Python, Java, JavaScript, Kotlin (basic)",
+                "avail": 529.05
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 8.04,
+            "color": 4473924,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "C",
+              "C++",
+              "Python",
+              "Java",
+              "JavaScript",
+              "Kotlin (basic)"
+            ],
+            "key": "Languages"
+          },
+          {
+            "label": "Web & Backend",
+            "slots": [
+              {
+                "x": 60.98,
+                "y": 598.51,
+                "x1": 303.24,
+                "rect": [
+                  60.98,
+                  591.35,
+                  303.24,
+                  600.25
+                ],
+                "size": 8.04,
+                "color": 4473924,
+                "text": "Web & Backend: Node.js, Express, FastAPI, PHP, Java (Play Framework)",
+                "avail": 529.05
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 8.04,
+            "color": 4473924,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Node.js",
+              "Express",
+              "FastAPI",
+              "PHP",
+              "Java (Play Framework)"
+            ],
+            "key": "Web & Backend"
+          },
+          {
+            "label": "Frontend",
+            "slots": [
+              {
+                "x": 60.98,
+                "y": 609.01,
+                "x1": 211.49,
+                "rect": [
+                  60.98,
+                  601.85,
+                  211.49,
+                  610.75
+                ],
+                "size": 8.04,
+                "color": 4473924,
+                "text": "Frontend: React, Vue.js, Next.js, HTML, CSS",
+                "avail": 529.05
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 8.04,
+            "color": 4473924,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "React",
+              "Vue.js",
+              "Next.js",
+              "HTML",
+              "CSS"
+            ],
+            "key": "Frontend"
+          },
+          {
+            "label": "Databases",
+            "slots": [
+              {
+                "x": 60.98,
+                "y": 619.51,
+                "x1": 198.98,
+                "rect": [
+                  60.98,
+                  612.35,
+                  198.98,
+                  621.25
+                ],
+                "size": 8.04,
+                "color": 4473924,
+                "text": "Databases: MySQL, MongoDB, Supabase",
+                "avail": 529.05
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 8.04,
+            "color": 4473924,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "MySQL",
+              "MongoDB",
+              "Supabase"
+            ],
+            "key": "Databases"
+          },
+          {
+            "label": "AI/ML",
+            "slots": [
+              {
+                "x": 60.98,
+                "y": 630.01,
+                "x1": 402.36,
+                "rect": [
+                  60.98,
+                  622.85,
+                  402.36,
+                  631.75
+                ],
+                "size": 8.04,
+                "color": 4473924,
+                "text": "AI/ML: Whisper fine-tuning, RAG pipelines, PyTorch, Transformers, VAD, Scikit-learn, Pandas, NumPy",
+                "avail": 529.05
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 8.04,
+            "color": 4473924,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Whisper fine-tuning",
+              "RAG pipelines",
+              "PyTorch",
+              "Transformers",
+              "VAD",
+              "Scikit-learn",
+              "Pandas",
+              "NumPy"
+            ],
+            "key": "AI/ML"
+          },
+          {
+            "label": "Tools & DevOps",
+            "slots": [
+              {
+                "x": 60.98,
+                "y": 640.51,
+                "x1": 277.55,
+                "rect": [
+                  60.98,
+                  633.35,
+                  277.55,
+                  642.25
+                ],
+                "size": 8.04,
+                "color": 4473924,
+                "text": "Tools & DevOps: Git, Selenium, Kubernetes, Power BI (beginner)",
+                "avail": 529.05
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 8.04,
+            "color": 4473924,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Git",
+              "Selenium",
+              "Kubernetes",
+              "Power BI (beginner)"
+            ],
+            "key": "Tools & DevOps"
+          },
+          {
+            "label": "CS Fundamentals",
+            "slots": [
+              {
+                "x": 60.98,
+                "y": 651.01,
+                "x1": 265.53,
+                "rect": [
+                  60.98,
+                  643.85,
+                  265.53,
+                  652.75
+                ],
+                "size": 8.04,
+                "color": 4473924,
+                "text": "CS Fundamentals: Data Structures & Algorithms, OOP, SDLC",
+                "avail": 529.05
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 8.04,
+            "color": 4473924,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Data Structures & Algorithms",
+              "OOP",
+              "SDLC"
+            ],
+            "key": "CS Fundamentals"
+          },
+          {
+            "label": "Soft Skills",
+            "slots": [
+              {
+                "x": 60.98,
+                "y": 661.51,
+                "x1": 288.06,
+                "rect": [
+                  60.98,
+                  654.35,
+                  288.06,
+                  663.25
+                ],
+                "size": 8.04,
+                "color": 4473924,
+                "text": "Soft Skills: Problem-solving, Team Collaboration, Time Management",
+                "avail": 529.05
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 8.04,
+            "color": 4473924,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Problem-solving",
+              "Team Collaboration",
+              "Time Management"
+            ],
+            "key": "Soft Skills"
+          }
+        ]
+      },
+      "extra_keywords": {
+        "Tech": [
+          "ReactNative",
+          "Leaflet",
+          "Firebase RealtimeDB",
+          "FCM",
+          "OSM",
+          "FaceRecognition"
+        ]
+      },
+      "all_skills": [
+        "C",
+        "C++",
+        "CSS",
+        "Data Structures & Algorithms",
+        "Express",
+        "FaceRecognition",
+        "FastAPI",
+        "FCM",
+        "Firebase RealtimeDB",
+        "Git",
+        "HTML",
+        "Java",
+        "Java (Play Framework)",
+        "JavaScript",
+        "Kotlin (basic)",
+        "Kubernetes",
+        "Leaflet",
+        "MongoDB",
+        "MySQL",
+        "Next.js",
+        "Node.js",
+        "NumPy",
+        "OOP",
+        "OSM",
+        "Pandas",
+        "PHP",
+        "Power BI (beginner)",
+        "Problem-solving",
+        "Python",
+        "PyTorch",
+        "RAG pipelines",
+        "React",
+        "ReactNative",
+        "Scikit-learn",
+        "SDLC",
+        "Selenium",
+        "Supabase",
+        "Team Collaboration",
+        "Time Management",
+        "Transformers",
+        "VAD",
+        "Vue.js",
+        "Whisper fine-tuning"
+      ],
+      "total_skills": 43,
+      "body_text": "Kavish Toraskar\n7507478964 | kavishtoraskar24@gmail.com  |  github.com/kavish-24   |leetcode.com/Kavish24 | Saligoa, Bardez, Goa\nPERSONAL SUMMARY\nEnthusiastic Software Engineer (B.E. IT, Data Science minor) skilled in designing and optimizing scalable backend systems, developing RESTful APIs, and working with\nNode.js, Express, and MySQL. Adept at data-driven problem solving, automation, and cross-functional collaboration to deliver high-quality, reliable solutions.\nEDUCATION\nGoa College of Engineering | Aug 2022 - Aug 2026 | Bachelors in Engineering in Information Technology (Minor: Data Science) | Ponda, Goa | CGPA: 7.9\n●\nSt. Xavier's Higher Secondary | 2022 | Higher Secondary School Certificate | Mapusa, Goa | 70%\n●\nChubby Cheeks Spring Valley | 2020 | Secondary School Certificate | Porvorim, Goa | 80%\n●\nEXPERIENCE\nTech Intern – Turtlemint(April2026– Septmeber 2026 )\nDesigned and developed backend services for an internal insurance technology platform using Python, FastAPI, and cloud-based AI services.\n●\nArchitected and implemented SOP-driven workflow automation to streamline operational processes.\n●\nDesigned and built a knowledge base solution to support information retrieval and process guidance.\n●\nBuilt and maintained integration mappings between internal systems and third-party insurance APIs, ensuring consistent and accurate data flow across platforms.\n●\nCarried out ongoing maintenance, monitoring, and enhancement of existing backend services and integrations to ensure reliability and uptime.\n●\nDeveloped APIs, data processing pipelines, validation mechanisms, and testing workflows.\n●\nCollaborated with stakeholders to translate business requirements into scalable technical solutions.\n●\n(June 2025 – September 2025)\nBackend Developer Intern – Freethink\nDeveloped REST APIs, auth modules, and backend services using Node.js, Express, MySQL.\n●\nDesigned optimized database schemas, reducing API response time by 30%.\n●\nIntegrated OpenRouteService for ATS-style candidate–job scoring.\n●\nImplemented Supabase for secure profile and resume storage.\n●\nBuilt real-time messaging & notifications using WebSockets.\n●\nCollaborated with UI/UX and QA teams to deliver features rapidly.\n●\nPROJECTS\nE-Bandobast – Police Deployment & Supervision System (Winner, Goa Police Hackathon)\nTech:ReactNative,Node.js,Express,MongoDB,Leaflet,Firebase RealtimeDB,FCM,OSM,FaceRecognition\nBuilt a role-based police deployment system with live officer tracking via Firebase Realtime DB.\n●\nDeveloped a React Native app enabling officer check-in via face recognition and real-time updates.\n●\nImplemented zone mapping with Leaflet + OSM, including polygon-based deployment areas.\n●\nAdded one-click automated deployment by processing Excel data and auto-assigning officers to zones.\n●\nUsed MongoDB for officer roles, records, and deployment metadata.\n●\nIntegrated FCM notifications for alerts and duty assignments.\n●\n– Whisper ASR Fine-Tuning + RAG-based Emotional Support System\nKonkani Mental Health Support App\nProcessed and cleaned 4+ hours of Konkani audio data; applied VAD and custom normalization to reduce noise and alignment errors.\n●\nReduced WER from 120 → 39 by fine-tuning Whisper using a Marathi base model; built an automated Gemini + Selenium pipeline to match and validate\n●\ntranscripts, plus a real-time inference system for live speech.\n●Extended the ASR model into a full mental health support app for Konkani-speaking students, letting users talk through concerns by voice in their native language.\n●Built a prediction pipeline combining RAG with a curated student-focused knowledge base for accurate, context-aware transcription and response results.\n● Used generative AI to interpret the issue the user was describing and generate relevant, empathetic responses; added guided breathing exercises to help users calm\ndown.\n●\nImplemented persistent storage of conversation history and chat context to maintain continuity across sessions.\n– RAG-based Document Search & Summarization System\nDocument Assistant\nBuilt the frontend in Next.js with document upload, search, and chat-style interaction.\n●\nImplemented RAG pipelines using PyTorch for embedding, indexing, and reference-based document search.\n●\nAdded automated PDF/DOCX summarization using Python NLP libraries.\n●\nUsed Supabase for secure file storage and metadata management.\n●\n●\nCERTIFICATIONS & ACHIEVEMENTS\nWinner – Goa Police Hackathon (2025) for building the E-Bandobast Deployment System.\n●\nEthical Hacking – NPTEL (2024)\n●",
+      "header": {
+        "name": "Kavish Toraskar",
+        "contact": "7507478964 | kavishtoraskar24@gmail.com  |  github.com/kavish-24   |leetcode.com/Kavish24 | Saligoa, Bardez, Goa"
+      },
+      "tag": "intern",
+      "folder": "INTERN",
+      "label": "Intern",
+      "personal": false,
+      "uploaded_at": "2026-11-14T18:47:56+00:00"
+    },
+    "sde": {
+      "source_file": "resume/SDE/Kavish_Toraskar.pdf",
+      "category_order": [
+        "Languages",
+        "Backend",
+        "Frontend & Mobile",
+        "Databases",
+        "AI/ML",
+        "Tools & DevOps",
+        "CS Fundamentals"
+      ],
+      "skills": {
+        "Languages": [
+          "Python",
+          "Java",
+          "JavaScript",
+          "C++",
+          "C",
+          "SQL"
+        ],
+        "Backend": [
+          "FastAPI",
+          "Node.js",
+          "Express",
+          "Java Spring Boot",
+          "REST APIs",
+          "WebSockets"
+        ],
+        "Frontend & Mobile": [
+          "React",
+          "Next.js",
+          "React Native",
+          "Vue.js",
+          "HTML",
+          "CSS"
+        ],
+        "Databases": [
+          "MySQL",
+          "MongoDB",
+          "Supabase",
+          "Firebase Realtime DB"
+        ],
+        "AI/ML": [
+          "PyTorch",
+          "Transformers",
+          "Whisper fine-tuning",
+          "RAG pipelines",
+          "LLMs (Google Gemini)",
+          "Voice Agents",
+          "VAD",
+          "Scikit-learn",
+          "Pandas",
+          "NumPy"
+        ],
+        "Tools & DevOps": [
+          "Git",
+          "Kubernetes (kubectl)",
+          "Kibana",
+          "Selenium",
+          "Claude Code"
+        ],
+        "CS Fundamentals": [
+          "Data Structures & Algorithms",
+          "OOP",
+          "DBMS",
+          "SDLC"
+        ]
+      },
+      "skills_section": {
+        "page": 0,
+        "found_by": "heading",
+        "heading": "TECHNICAL SKILLS",
+        "region": [
+          27.0,
+          117.39,
+          612.0,
+          213.45
+        ],
+        "right": 585.43,
+        "reorderable": true,
+        "entries": [
+          {
+            "label": "Languages",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 141.75,
+                "x1": 242.89,
+                "rect": [
+                  58.5,
+                  133.73,
+                  242.89,
+                  143.7
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Languages: Python, Java, JavaScript, C++, C, SQL",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Python",
+              "Java",
+              "JavaScript",
+              "C++",
+              "C",
+              "SQL"
+            ],
+            "key": "Languages"
+          },
+          {
+            "label": "Backend",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 153.75,
+                "x1": 350.69,
+                "rect": [
+                  58.5,
+                  145.73,
+                  350.69,
+                  155.7
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Backend: FastAPI, Node.js, Express, Java Spring Boot, REST APIs, WebSockets",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "FastAPI",
+              "Node.js",
+              "Express",
+              "Java Spring Boot",
+              "REST APIs",
+              "WebSockets"
+            ],
+            "key": "Backend"
+          },
+          {
+            "label": "Frontend & Mobile",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 165.0,
+                "x1": 312.76,
+                "rect": [
+                  58.5,
+                  156.98,
+                  312.76,
+                  166.95
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Frontend & Mobile: React, Next.js, React Native, Vue.js, HTML, CSS",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "React",
+              "Next.js",
+              "React Native",
+              "Vue.js",
+              "HTML",
+              "CSS"
+            ],
+            "key": "Frontend & Mobile"
+          },
+          {
+            "label": "Databases",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 176.25,
+                "x1": 295.23,
+                "rect": [
+                  58.5,
+                  168.23,
+                  295.23,
+                  178.2
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Databases: MySQL, MongoDB, Supabase, Firebase Realtime DB",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "MySQL",
+              "MongoDB",
+              "Supabase",
+              "Firebase Realtime DB"
+            ],
+            "key": "Databases"
+          },
+          {
+            "label": "AI/ML",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 188.25,
+                "x1": 581.0,
+                "rect": [
+                  58.5,
+                  180.23,
+                  581.0,
+                  190.2
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "AI/ML: PyTorch, Transformers, Whisper fine-tuning, RAG pipelines, LLMs (Google Gemini), Voice Agents, VAD, Scikit-learn, Pandas, NumPy",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "PyTorch",
+              "Transformers",
+              "Whisper fine-tuning",
+              "RAG pipelines",
+              "LLMs (Google Gemini)",
+              "Voice Agents",
+              "VAD",
+              "Scikit-learn",
+              "Pandas",
+              "NumPy"
+            ],
+            "key": "AI/ML"
+          },
+          {
+            "label": "Tools & DevOps",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 199.5,
+                "x1": 336.09,
+                "rect": [
+                  58.5,
+                  191.48,
+                  336.09,
+                  201.45
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "Tools & DevOps: Git, Kubernetes (kubectl), Kibana, Selenium, Claude Code",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Git",
+              "Kubernetes (kubectl)",
+              "Kibana",
+              "Selenium",
+              "Claude Code"
+            ],
+            "key": "Tools & DevOps"
+          },
+          {
+            "label": "CS Fundamentals",
+            "slots": [
+              {
+                "x": 58.5,
+                "y": 211.5,
+                "x1": 313.76,
+                "rect": [
+                  58.5,
+                  203.48,
+                  313.76,
+                  213.45
+                ],
+                "size": 9.0,
+                "color": 3355443,
+                "text": "CS Fundamentals: Data Structures & Algorithms, OOP, DBMS, SDLC",
+                "avail": 526.93
+              }
+            ],
+            "fam": "serif",
+            "bold_prefix": false,
+            "bold_items": false,
+            "size": 9.0,
+            "color": 3355443,
+            "bullet": "",
+            "sep": ", ",
+            "items": [
+              "Data Structures & Algorithms",
+              "OOP",
+              "DBMS",
+              "SDLC"
+            ],
+            "key": "CS Fundamentals"
+          }
+        ]
+      },
+      "extra_keywords": {
+        "Tech": [
+          "FCM",
+          "Leaflet",
+          "OSM",
+          "Face Recognition"
+        ]
+      },
+      "all_skills": [
+        "C",
+        "C++",
+        "Claude Code",
+        "CSS",
+        "Data Structures & Algorithms",
+        "DBMS",
+        "Express",
+        "Face Recognition",
+        "FastAPI",
+        "FCM",
+        "Firebase Realtime DB",
+        "Git",
+        "HTML",
+        "Java",
+        "Java Spring Boot",
+        "JavaScript",
+        "Kibana",
+        "Kubernetes (kubectl)",
+        "Leaflet",
+        "LLMs (Google Gemini)",
+        "MongoDB",
+        "MySQL",
+        "Next.js",
+        "Node.js",
+        "NumPy",
+        "OOP",
+        "OSM",
+        "Pandas",
+        "Python",
+        "PyTorch",
+        "RAG pipelines",
+        "React",
+        "React Native",
+        "REST APIs",
+        "Scikit-learn",
+        "SDLC",
+        "Selenium",
+        "SQL",
+        "Supabase",
+        "Transformers",
+        "VAD",
+        "Voice Agents",
+        "Vue.js",
+        "WebSockets",
+        "Whisper fine-tuning"
+      ],
+      "total_skills": 45,
+      "body_text": "Kavish Toraskar\n+91 7507478964 | kavishtoraskar24@gmail.com | github.com/kavish-24 | leetcode.com/Kavish24 | Goa, India\nSUMMARY\nSoftware Engineer (B.E. IT, Data Science minor, 2026) with two internships building and debugging production backend systems in Python/FastAPI, Java\nSpring Boot and Node.js. Experienced in third-party API integrations, database schema optimization,production debugging with Kubernetes and Kibana,\nand applied AI (RAG, voice agents, ASR). Strong in data structures, algorithms and OOP. Seeking full-time Software Engineer roles.\nEXPERIENCE\nTech Intern – Turtlemint(Apr 2026 – Sep 2026)\nDeveloped a real-time customer-care voice agent on Google's low-latency Gemini 2.5 Flash Native Audio model, with code-level guardrails that\nkeep the agent strictly following company SOPs.\nBuilt the agent's knowledge base using Gemini Pro to support accurate information retrieval and process guidance.\nIntegrated insurer (partner) APIs with Turtlemint's backend by mapping internal data to each insurer's required request body, ensuring accurate\ndata flow across platforms.\nBuilt add-on eligibility rule logic that blocks unsupported or conflicting add-on combinations (e.g. restricting certain add-ons for EVs older than 2\nyears) before requests reach the insurer, preventing backend failures.\nFixed KYC validation flow issues in customer purchase journeys and worked on the insurance proposal flow.\nReproduced and debugged MIS reporting page errors and other production issues in Java Spring Boot services, using Claude Code to analyse the\ncodebase and kubectl and Kibana to trace live logs.\nBackend Developer Intern – Freethink(Jul 2025 – Sep 2025)\nDeveloped REST APIs, auth modules, and backend services using Node.js, Express and MySQL.\nRedesigned database schemas around primary/foreign-key lookups to eliminate unnecessary multi-table joins, speeding up API responses.\nIntegrated OpenRouteService for ATS-style candidate–job scoring.\nBuilt real-time messaging & notifications using WebSockets; implemented Supabase for secure profile and resume storage.\nPROJECTS\nE-Bandobast – Police Deployment & Supervision System(Winner, Goa Police Hackathon 2025) | GitHub (backend)\nTech: React Native, Node.js, Express, MongoDB, Firebase Realtime DB, FCM, Leaflet, OSM, Face Recognition\nBuilt a role-based police deployment platform with live officer tracking via Firebase Realtime DB, deployed behind a restricted police-only login.\nDeveloped a React Native app for officer check-in via face recognition with real-time updates and FCM duty alerts.\nImplemented polygon-based zone mapping with Leaflet + OSM, and one-click deployment that parses Excel rosters and auto-assigns officers to\nzones.\nAshwaasAI – Konkani Voice Mental Health Assistant– Whisper Fine-Tuning, RAG, LLMs | GitHub\nFine-tuned Whisper from a Marathi base model on 4+ hours of self-cleaned Konkani audio (VAD, custom normalization), reducing WER from\n120 to 39 for a low-resource language.\nBuilt an automated Gemini + Selenium pipeline to match and validate transcripts, plus a real-time inference system for live speech.\nDesigned a RAG-based recovery algorithm for imperfect ASR output: retrieved the closest matching sentences from a curated knowledge base,\nfiltered them to rebuild context, then translated to English and passed it to a reasoning LLM for query resolution.\nShipped it as a voice-first support app for Konkani-speaking students with empathetic LLM responses, guided breathing exercises and persistent\nconversation history.\nDocument Assistant– RAG-based Document Search & Summarization | GitHub\nBuilt a Next.js app with document upload, semantic search and chat-style Q&A over PDF/DOCX files.\nImplemented RAG pipelines in PyTorch for embedding, indexing and reference-based retrieval, plus automated summarization; used Supabase\nfor file storage and metadata.\nEDUCATION\nB.E. in Information Technology (Minor: Data Science) – Goa College of Engineering, Ponda | Aug 2022 – Aug 2026 | CGPA: 7.9\nHSSC – St. Xavier's Higher Secondary, Mapusa | 2022 | 70%\nSSC – Chubby Cheeks Spring Valley, Porvorim | 2020 | 80%\nACHIEVEMENTS & CERTIFICATIONS\nWinner – Goa Police Hackathon (2025) for building the E-Bandobast Deployment System.\nEthical Hacking – NPTEL (2024)",
+      "header": {
+        "name": "Kavish Toraskar",
+        "contact": "+91 7507478964 | kavishtoraskar24@gmail.com | github.com/kavish-24 | leetcode.com/Kavish24 | Goa, India"
+      },
+      "tag": "sde",
+      "folder": "SDE",
+      "label": "SDE",
+      "personal": true,
+      "uploaded_at": "2026-11-04T14:48:39+00:00"
     }
-  }
+  },
+  "errors": {}
 }

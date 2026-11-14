@@ -43,6 +43,8 @@ class JobIn(BaseModel):
     skills_added: list[str] = []
     skills_matched: list[str] = []
     jd: str | None = Field(default=None, max_length=30000)
+    cover_letter: str | None = Field(default=None, max_length=8000)
+    cover_letter_file: str | None = None
     applied_date: date = Field(default_factory=date.today)
     stage: Stage = "applied"
     notes: str | None = Field(default=None, max_length=2000)
@@ -52,7 +54,7 @@ class JobIn(BaseModel):
     def clean_skills(cls, v):
         return _clean_skills(v)
 
-    @field_validator("resume_used")
+    @field_validator("resume_used", "cover_letter_file")
     @classmethod
     def check_resume(cls, v):
         return _check_resume(v)
@@ -67,6 +69,8 @@ class JobPatch(BaseModel):
     skills_added: list[str] | None = None
     skills_matched: list[str] | None = None
     jd: str | None = Field(default=None, max_length=30000)
+    cover_letter: str | None = Field(default=None, max_length=8000)
+    cover_letter_file: str | None = None
     applied_date: date | None = None
     stage: Stage | None = None
     notes: str | None = None
@@ -76,7 +80,7 @@ class JobPatch(BaseModel):
     def clean_skills(cls, v):
         return None if v is None else _clean_skills(v)
 
-    @field_validator("resume_used")
+    @field_validator("resume_used", "cover_letter_file")
     @classmethod
     def check_resume(cls, v):
         return _check_resume(v)
@@ -122,12 +126,29 @@ def update(job_id: str, patch: JobPatch) -> dict | None:
 
 
 def delete(job_id: str) -> bool:
+    """Delete the application AND the crafted resume copy it used (unless
+    another application still points at the same copy)."""
     jobs = load()
-    kept = [j for j in jobs if j["id"] != job_id]
-    if len(kept) == len(jobs):
+    gone = next((j for j in jobs if j["id"] == job_id), None)
+    if gone is None:
         return False
+    kept = [j for j in jobs if j["id"] != job_id]
     save(kept)
+    for field in ("resume_used", "cover_letter_file"):
+        name = gone.get(field)
+        if name and not any(j.get(field) == name for j in kept):
+            path = (OUTPUT_DIR / name).resolve()
+            if path.parent == OUTPUT_DIR.resolve() and path.suffix.lower() == ".pdf":
+                path.unlink(missing_ok=True)
     return True
+
+
+def counts() -> dict:
+    jobs = load()
+    out = {"total": len(jobs), **{s: 0 for s in STAGES}}
+    for j in jobs:
+        out[j.get("stage", "applied")] = out.get(j.get("stage", "applied"), 0) + 1
+    return out
 
 
 def lacking_from(analysis: dict, edit: dict) -> list[str]:

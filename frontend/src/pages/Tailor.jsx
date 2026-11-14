@@ -1,13 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { Chips, Segmented, Stat } from "../components.jsx";
 import { navigate } from "../router.js";
 
-const RESUMES = [
-  { value: "ai", label: "AI / ML" },
-  { value: "sde", label: "SDE" },
-  { value: "fullstack", label: "Full Stack" },
-];
 const TIER_LABEL = { A3: "proven", B: "learnable", C: "don't have", unverified: "verify", unclassified: "check" };
 const pct = (n) => (n == null ? "–" : `${n}%`);
 const kwText = (k) => (typeof k === "string" ? k : k?.keyword || "");
@@ -75,9 +70,9 @@ function Picker({ data, selected, onToggle, onSetAll, onApply, busy }) {
         <span className="muted">{selected.size} selected</span>
         <button type="button" className="btn ghost" disabled={!selected.size || !!busy}
                 onClick={() => onSetAll([...c.must_add, ...c.might_add], false)}>Clear</button>
-        <button type="button" className="btn primary" disabled={!selected.size || !!busy} onClick={onApply}>
-          {busy === "apply" ? <><span className="spin" /> Editing resume…</>
-            : `Add ${selected.size || ""} to resume`}
+        <button type="button" className="btn primary" disabled={!!busy} onClick={onApply}>
+          {busy === "apply" ? <><span className="spin" /> {selected.size ? "Editing resume…" : "Copying…"}</>
+            : selected.size ? `Add ${selected.size} to resume` : "Use resume as-is"}
         </button>
       </div>
     </section>
@@ -109,7 +104,76 @@ function ChangeRows({ changelog, noSlot }) {
   );
 }
 
-function Compare({ done, form, analysis }) {
+/* ------------------------------------------------ step 4: cover letter */
+function CoverLetter({ form, analysis, done, letter, setLetter, makePdf }) {
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  async function generate() {
+    if (letter?.text && !window.confirm("Write a new letter? Your edits to this one will be lost.")) return;
+    setBusy("write");
+    setError("");
+    try {
+      const skills = [...(done?.skills_added || []), ...analysis.categories.have.map((h) => h.text)];
+      const r = await api.post("/cover_letter", {
+        resume: form.resume, title: form.title, company: form.company, jd: form.jd, skills,
+      });
+      setLetter({ text: r.text, name: r.name, contact: r.contact, file: null, url: null });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy("");
+    }
+  }
+  async function download() {
+    setBusy("pdf");
+    setError("");
+    try { window.open((await makePdf()).url, "_blank", "noreferrer"); }
+    catch (err) { setError(err.message); }
+    finally { setBusy(""); }
+  }
+  const copy = () => {
+    navigator.clipboard.writeText(letter.text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <section className="card">
+      <div className="card-head">
+        <div>
+          <p className="eyebrow">Step 4 · optional · written by your local model</p>
+          <h2>Cover letter</h2>
+        </div>
+        <button type="button" className={`btn ${letter ? "ghost" : "primary"}`} disabled={!!busy} onClick={generate}>
+          {busy === "write" ? <><span className="spin" /> Writing…</> : letter ? "Rewrite" : "Write cover letter"}
+        </button>
+      </div>
+      {error && <p className="error">{error}</p>}
+      {letter ? (
+        <>
+          <textarea className="letter" value={letter.text}
+                    onChange={(e) => setLetter((l) => ({ ...l, text: e.target.value, file: null, url: null }))} />
+          <div className="row between">
+            <p className="faint small">Check every fact before sending: the model only had your resume, but small models can still slip.</p>
+            <div className="row">
+              <button type="button" className="btn ghost" onClick={copy}>{copied ? "Copied ✓" : "Copy text"}</button>
+              <button type="button" className="btn ghost" disabled={!!busy} onClick={download}>
+                {busy === "pdf" ? <><span className="spin" /> Making PDF…</> : "Download PDF"}
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <p className="faint">A short, 3-paragraph letter from your resume, this JD and the company. You can edit it before copying or downloading.</p>
+      )}
+    </section>
+  );
+}
+
+/* --------------------------------------------- step 5: save application */
+function SaveBar({ done, form, analysis, letter, makePdf }) {
   const [saved, setSaved] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -119,6 +183,7 @@ function Compare({ done, form, analysis }) {
     setSaving(true);
     setError("");
     try {
+      const pdf = letter?.text?.trim() ? await makePdf() : null;
       setSaved(await api.post("/api/job_hunt", {
         company: form.company.trim(),
         role: form.title.trim(),
@@ -128,6 +193,8 @@ function Compare({ done, form, analysis }) {
         skills_matched: analysis.categories.have.map((h) => h.text),
         skills_lacking: done.skills_lacking,
         jd: form.jd,
+        cover_letter: letter?.text?.trim() || null,
+        cover_letter_file: pdf?.file || null,
         stage: "applied",
       }));
     } catch (err) {
@@ -138,22 +205,36 @@ function Compare({ done, form, analysis }) {
   }
 
   return (
+    <section className="card save-bar">
+      <div className="row between">
+        <div>
+          <p className="eyebrow">Step 5</p>
+          <h2>Track this application</h2>
+          <p className="muted small">
+            Saves the company, role, JD, resume copy{letter?.text ? ", cover letter" : ""} and the skills to study.
+          </p>
+        </div>
+        {saved
+          ? <button type="button" className="btn primary" onClick={() => navigate(`/job_hunt/${saved.id}`)}>Saved ✓ · Open it →</button>
+          : <button type="button" className="btn primary" disabled={saving} onClick={save}>
+              {saving ? <><span className="spin" /> Saving…</> : "Add to applied jobs"}
+            </button>}
+      </div>
+      {error && <p className="error">{error}</p>}
+    </section>
+  );
+}
+
+function Compare({ done }) {
+  return (
     <section className="card">
       <div className="card-head">
         <div>
           <p className="eyebrow">Step 3 · output/{done.file}</p>
           <h2>Check it side by side</h2>
         </div>
-        <div className="row">
-          <a className="btn ghost" href={done.url} target="_blank" rel="noreferrer">Open ↗</a>
-          {saved
-            ? <button type="button" className="btn primary" onClick={() => navigate("/job_hunt")}>Saved ✓ · Open job hunt →</button>
-            : <button type="button" className="btn primary" disabled={saving} onClick={save}>
-                {saving ? <><span className="spin" /> Saving…</> : "Add to applied jobs"}
-              </button>}
-        </div>
+        <a className="btn ghost" href={done.url} target="_blank" rel="noreferrer">Open ↗</a>
       </div>
-      {error && <p className="error">{error}</p>}
       <div className="side">
         <figure>
           <figcaption className="eyebrow">Original</figcaption>
@@ -248,7 +329,7 @@ function Keywords({ data }) {
 }
 
 /* ------------------------------------------------------------------ page */
-const EMPTY = { resume: "ai", title: "", company: "", link: "", jd: "" };
+const EMPTY = { resume: "", title: "", company: "", link: "", jd: "" };
 
 export default function Tailor() {
   const [form, setForm] = useState(EMPTY);
@@ -257,14 +338,25 @@ export default function Tailor() {
   const [analysis, setAnalysis] = useState(null);
   const [selected, setSelected] = useState(new Set());
   const [done, setDone] = useState(null);
+  const [resumes, setResumes] = useState(null);
+  const [letter, setLetter] = useState(null);   // {text, name, contact, file, url}
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v?.target ? v.target.value : v }));
 
+  useEffect(() => {
+    api.get("/api/resumes").then((rs) => {
+      setResumes(rs);
+      setForm((f) => (f.resume || !rs.length ? f : { ...f, resume: rs[0].key }));
+    }).catch((e) => setError(e.message));
+  }, []);
+
   async function runAnalyze() {
+    if (!form.resume) return setError("Upload a base resume on the Profile page first.");
     if (!form.title.trim() || !form.jd.trim()) return setError("Add a job title and paste the JD first.");
     setBusy("analyze");
     setError("");
     setAnalysis(null);
     setDone(null);
+    setLetter(null);
     try {
       const a = await api.post("/analyze", {
         resume: form.resume, title: form.title, company: form.company, jd: form.jd,
@@ -292,6 +384,17 @@ export default function Tailor() {
     }
   }
 
+  // PDF of the current letter text (re-made only when the text changed)
+  async function makeLetterPdf() {
+    if (letter.file) return letter;
+    const r = await api.post("/cover_letter/pdf", {
+      text: letter.text, name: letter.name, contact: letter.contact,
+      title: form.title, company: form.company, resume: form.resume,
+    });
+    setLetter((l) => ({ ...l, file: r.file, url: r.url }));
+    return r;
+  }
+
   const toggle = (skill) => setSelected((s) => {
     const n = new Set(s);
     n.has(skill) ? n.delete(skill) : n.add(skill);
@@ -315,7 +418,15 @@ export default function Tailor() {
         <div className="field-row">
           <label className="field">
             <span>Resume</span>
-            <Segmented name="Resume" options={RESUMES} value={form.resume} onChange={set("resume")} />
+            {resumes === null ? <span className="faint">Loading…</span>
+              : resumes.length ? (
+                <Segmented name="Resume" value={form.resume} onChange={set("resume")}
+                           options={resumes.map((r) => ({ value: r.key, label: r.label || r.key }))} />
+              ) : (
+                <a className="link" href="/profile" onClick={(e) => { e.preventDefault(); navigate("/profile"); }}>
+                  No base resume yet: upload one →
+                </a>
+              )}
           </label>
           <label className="field grow">
             <span>Job title</span>
@@ -349,7 +460,15 @@ export default function Tailor() {
         <Picker data={analysis} selected={selected} onToggle={toggle} onSetAll={setAll}
                 onApply={runApply} busy={busy} />
       )}
-      {done && <Compare key={done.file} done={done} form={form} analysis={analysis} />}
+      {done && <Compare key={done.file} done={done} />}
+      {analysis && (
+        <CoverLetter form={form} analysis={analysis} done={done} letter={letter}
+                     setLetter={setLetter} makePdf={makeLetterPdf} />
+      )}
+      {done && (
+        <SaveBar key={done.file} done={done} form={form} analysis={analysis}
+                 letter={letter} makePdf={makeLetterPdf} />
+      )}
       {analysis && <Keywords data={analysis.ats_keywords} />}
     </>
   );

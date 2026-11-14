@@ -10,8 +10,10 @@ Rules (resume_skills_crafter.md, steps 3-5):
                                plus up to +2 for JD emphasis (in title, repeated,
                                mandatory heading, ATS hint); +0.6 if already
                                proven in a bullet (Tier A3)
-        value of a resume item: Vue.js 0 | off-role A2 1 | off-role A1 2 |
-                                on-role A2 4 | on-role A1 5 | CS fundamentals 4
+        value of a resume item (owner's resumes): Vue.js 0 | off-role A2 1 |
+                                off-role A1 2 | on-role A2 4 | on-role A1 5 |
+                                CS fundamentals 4
+        (anyone else's resume): proven in experience/projects 5, else 3
   * Never drop Python / Java / JavaScript / SQL, or anything the JD wants.
   * Order: category with most Required JD skills first; within a line,
     Required -> Preferred -> Implied -> the rest.
@@ -82,20 +84,66 @@ def additions_for(analysis: dict, selected: list[str]) -> list[dict]:
     return adds
 
 
-def plan(current: dict, additions: list[dict], wanted: dict, role_family: str) -> dict:
-    """current = pdfedit.read_skills(); wanted = {skill: bucket} for the JD."""
+_TOKEN_ALIASES = {"ml": "ai", "devops": "tools", "tool": "tools", "fundamental": "fundamentals",
+                  "database": "databases", "db": "databases", "language": "languages",
+                  "programming": "languages", "front": "frontend", "back": "backend",
+                  "mobile": "frontend", "web": "frontend", "cloud": "tools",
+                  "framework": "frameworks"}
+
+
+def _tokens(name: str) -> set[str]:
+    return {_TOKEN_ALIASES.get(t, t) for t in re.findall(r"[a-z]+", (name or "").lower())}
+
+
+def choose_line(skill: str, lines: dict, labels: dict) -> str:
+    """Resume line a new skill goes on, for ANY resume's own line names:
+    1. a line whose name matches the skill's group (Databases, Tools, ...),
+    2. the line already holding most skills of that group,
+    3. a catch-all line (Tools / Other / Technologies),
+    4. the last line."""
+    group = db.CATEGORY_OF.get(skill, db.DEFAULT_CATEGORY)
+    if group in lines:
+        return group
+    gt = _tokens(group)
+    for key in lines:
+        if gt & _tokens(labels.get(key) or ""):
+            return key
+    counts = {k: sum(db.CATEGORY_OF.get(canon(i) or i) == group for i in items)
+              for k, items in lines.items()}
+    best = max(counts, key=counts.get) if counts else None
+    if best and counts[best] > 0:
+        return best
+    for key in lines:
+        if _tokens(labels.get(key) or "") & {"tools", "other", "technologies", "misc", "additional"}:
+            return key
+    return list(lines)[-1]
+
+
+def plan(current: dict, additions: list[dict], wanted: dict, role_family: str,
+         personal: bool = True, body: str = "") -> dict:
+    """current = pdfedit.read_skills(); wanted = {skill: bucket} for the JD.
+    personal = the owner's curated resume tiers apply; otherwise an item is
+    worth more when the resume's own experience/project text proves it."""
+    sec = current["section"]
     lines = {cat: list(items) for cat, items in current["lines"].items()}
-    avail, size = current["avail"], current["size"]
+    labels = current["labels"]
     wanted_set = set(wanted)
     core = CORE_LINES.get(role_family, set())
 
-    def width(cat: str, items: list[str]) -> float:
-        return pdfedit.text_width(pdfedit.line_text(cat, items), size)
+    def fits(cat: str, items: list[str]) -> bool:
+        return pdfedit.fits(sec, cat, items)
 
-    before = {c: width(c, i) for c, i in lines.items()}
+    before = {c: pdfedit.usage(sec, c, i) for c, i in lines.items()}
+
+    def in_body(item: str) -> bool:
+        c = canon(item)
+        rxs = [rx for cc, _, rx in analyze._SPELLINGS if cc == c] if c else [analyze._regex(item)]
+        return any(rx.search(body) for rx in rxs)
 
     def item_value(cat: str, item: str) -> float:
         c = canon(item) or item
+        if not personal:
+            return 5 if in_body(item) else 3      # proven elsewhere on the resume > listed only
         if c == "Vue.js":
             return 0       # md: drop first when space is tight
         if cat == "CS Fundamentals":
@@ -112,30 +160,33 @@ def plan(current: dict, additions: list[dict], wanted: dict, role_family: str) -
     changelog, no_slot = [], []
     for add in additions:
         skill, text = add["skill"], add["text"]
-        if canon(text) and any(canon(i) == canon(text) for v in lines.values() for i in v):
+        on_resume = [i for v in lines.values() for i in v]
+        if (canon(text) and any(canon(i) == canon(text) for i in on_resume)) or \
+                text.lower() in {i.lower() for i in on_resume}:
             continue  # already on the resume
-        cat = db.CATEGORY_OF.get(skill, db.DEFAULT_CATEGORY)
-        if cat not in lines:
-            cat = db.DEFAULT_CATEGORY if db.DEFAULT_CATEGORY in lines else next(iter(lines))
+        cat = choose_line(skill, lines, labels)
         worth = ADD_VALUE.get(add["bucket"], 3) + add.get("bonus", 0)
         trial, dropped = list(lines[cat]), []
-        while width(cat, trial + [text]) > avail:
+        while not fits(cat, trial + [text]):
             cands = [i for i in trial if removable(i) and item_value(cat, i) < worth]
             if not cands:
                 break
             worst = min(cands, key=lambda i: (item_value(cat, i), -len(i)))
             trial.remove(worst)
             dropped.append(worst)
-        if width(cat, trial + [text]) > avail:
+        if not fits(cat, trial + [text]):
             no_slot.append({"skill": skill, "category": cat,
                             "reason": "line full and nothing less valuable to drop"})
             continue
         lines[cat] = trial + [text]
         for d in dropped:
             c = canon(d) or d
-            why = ("Vue.js: first to go" if c == "Vue.js" else
-                   "A2 (no bullet proves it), not in JD" if c in db.TIER_A2
-                   else "not in JD, space needed")
+            if not personal:
+                why = "not proven elsewhere on the resume, not in JD"
+            else:
+                why = ("Vue.js: first to go" if c == "Vue.js" else
+                       "A2 (no bullet proves it), not in JD" if c in db.TIER_A2
+                       else "not in JD, space needed")
             changelog.append({"action": "removed", "skill": d, "category": cat, "reason": why})
         changelog.append({"action": "added", "skill": text, "category": cat,
                           "reason": f"{add['bucket']} JD keyword" + (
@@ -148,35 +199,45 @@ def plan(current: dict, additions: list[dict], wanted: dict, role_family: str) -
     for cat in lines:
         lines[cat].sort(key=rank)
 
-    # the category with the most Required JD skills goes first (stable otherwise)
+    # the line with the most Required JD skills goes first, when the layout
+    # allows moving lines (all single-line, one column)
     def n_required(cat: str) -> int:
         return sum(wanted.get(canon(i) or i) == "required" for i in lines[cat])
-    order = sorted(lines, key=lambda c: -n_required(c))
+    order = sorted(lines, key=lambda c: -n_required(c)) if current["reorderable"] else list(lines)
+    seps = {e["key"]: e["sep"] for e in sec["entries"]}
+
+    def space(c: str) -> dict:
+        used, budget = pdfedit.usage(sec, c, lines[c])
+        return {"before": round(before[c][0], 1), "after": round(used, 1), "budget": round(budget, 1)}
 
     return {
         "lines": lines,
+        "labels": labels,
         "order": order,
-        "skills_section": "\n".join(pdfedit.line_text(c, lines[c]) for c in order),
+        "skills_section": "\n".join(pdfedit.line_text(labels[c], lines[c], seps[c]) for c in order),
         "changelog": changelog,
         "no_slot": no_slot,
-        "space": {c: {"before": round(before[c], 1), "after": round(width(c, lines[c]), 1),
-                      "budget": round(avail, 1)} for c in order},
+        "space": {c: space(c) for c in order},
     }
 
 
 def compose(kb: dict, variant: str, analysis: dict) -> dict:
     """Preview: plan against the original PDF without writing anything."""
-    pdf = ROOT / kb["variants"][variant]["source_file"]
+    v = kb["variants"][variant]
+    pdf = ROOT / v["source_file"]
     result = plan(pdfedit.read_skills(pdf), additions_from(analysis),
-                  analysis["skills"]["wanted_buckets"], analysis["role_family"])
+                  analysis["skills"]["wanted_buckets"], analysis["role_family"],
+                  v.get("personal", False), v.get("body_text", ""))
     result["resume"] = variant
     return result
 
 
-def apply_to_pdf(pdf_path, additions: list[dict], wanted: dict, role_family: str) -> dict:
+def apply_to_pdf(pdf_path, additions: list[dict], wanted: dict, role_family: str,
+                 personal: bool = True) -> dict:
     """Plan against `pdf_path` and rewrite its skills lines (edits the file)."""
     current = pdfedit.read_skills(pdf_path)
-    result = plan(current, additions, wanted, role_family)
+    body = pdfedit.body_text(pdf_path, current["section"])
+    result = plan(current, additions, wanted, role_family, personal, body)
     result["widths"] = pdfedit.write_skills(
         pdf_path, pdf_path, [(c, result["lines"][c]) for c in result["order"]])
     return result

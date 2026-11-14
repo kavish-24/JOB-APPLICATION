@@ -31,22 +31,24 @@ def _safe(pdf_path: str) -> Path:
 def read_skills_section(pdf_path: str) -> dict:
     """Return the skills lines of a resume copy and the max width (pt) of a line."""
     cur = pdfedit.read_skills(_safe(pdf_path))
-    return {"order": cur["order"], "lines": cur["lines"], "avail_pt": round(cur["avail"], 1),
-            "font_size": cur["size"]}
+    return {"order": cur["order"], "lines": cur["lines"], "labels": cur["labels"],
+            "avail_pt": round(cur["avail"], 1), "font_size": cur["size"],
+            "page": cur["section"]["page"], "heading": cur["section"]["heading"]}
 
 
 @mcp.tool()
 def add_skills_to_resume(pdf_path: str, additions: list[dict], wanted: dict,
-                         role_family: str) -> dict:
+                         role_family: str, personal: bool = False) -> dict:
     """Add skills to a resume copy, keeping every skills line on one printed line.
 
     additions:   [{"skill": canonical name, "text": spelling to print,
                    "bucket": "required"|"preferred"|"implied"}] in priority order
     wanted:      {skill: bucket} for every skill the JD wants (never removed)
-    role_family: "ai" | "sde" | "fullstack" (decides which skills are on-role)
+    role_family: internal skill profile ("ai" | "sde" | "fullstack" | "general")
+    personal:    True only for the owner's own resumes (curated tiers apply)
     Edits the file in place and returns the changelog, skills left without a
     slot, and the final line widths."""
-    result = compose.apply_to_pdf(_safe(pdf_path), additions, wanted, role_family)
+    result = compose.apply_to_pdf(_safe(pdf_path), additions, wanted, role_family, personal)
     result.pop("lines", None)
     return result
 

@@ -143,6 +143,20 @@ EXTRA_B = {"Flask": ("M", 2), "SQLite": ("L", 1), "Bootstrap": ("L", 2),
 
 FREQ_SCORE = {"H": 4, "MH": 3, "M": 2, "L": 1}
 
+
+def _general() -> list[tuple[str, str, int]]:
+    """Any other role (user-made categories like 'Test Engineer'): every family's
+    learnable skills, best frequency and quickest hours."""
+    best: dict[str, tuple[str, int]] = {}
+    for rows in TIER_B.values():
+        for name, freq, hours in rows:
+            f, h = best.get(name, (freq, hours))
+            best[name] = (max(f, freq, key=FREQ_SCORE.get), min(h, hours))
+    return [(n, f, h) for n, (f, h) in best.items()]
+
+
+TIER_B["general"] = _general()
+
 # Tier-B frequencies that count as "an ATS for this role nearly always searches it"
 IMPLIED_FREQ = {"H", "MH"}
 

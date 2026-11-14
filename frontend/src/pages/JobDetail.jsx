@@ -23,7 +23,8 @@ export default function JobDetail({ id }) {
     catch (err) { setError(err.message); }
   };
   const remove = async () => {
-    if (!window.confirm(`Delete ${job.company} – ${job.role}?`)) return;
+    const copy = job.resume_used ? ` and its resume copy (${job.resume_used})` : "";
+    if (!window.confirm(`Delete ${job.company} – ${job.role}${copy}? This can't be undone.`)) return;
     try { await api.del(`/api/job_hunt/${id}`); navigate("/job_hunt"); }
     catch (err) { setError(err.message); }
   };
@@ -77,6 +78,22 @@ export default function JobDetail({ id }) {
                   <span className="faint mono"> {h.at.replace("T", " ").slice(0, 16)}</span></li>
               ))}
             </ol>
+
+            {job.cover_letter && (
+              <>
+                <div className="row between letter-head">
+                  <h3>Cover letter</h3>
+                  <div className="row">
+                    <button type="button" className="btn ghost sm"
+                            onClick={() => navigator.clipboard.writeText(job.cover_letter)}>Copy text</button>
+                    {job.cover_letter_file && (
+                      <a className="btn ghost sm" href={`/files/${job.cover_letter_file}`} target="_blank" rel="noreferrer">PDF ↗</a>
+                    )}
+                  </div>
+                </div>
+                <p className="muted letter-text">{job.cover_letter}</p>
+              </>
+            )}
 
             {job.jd && (
               <details className="jd-block">

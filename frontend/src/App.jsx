@@ -2,10 +2,12 @@ import { navigate, usePath } from "./router.js";
 import Tailor from "./pages/Tailor.jsx";
 import JobHunt from "./pages/JobHunt.jsx";
 import JobDetail from "./pages/JobDetail.jsx";
+import Profile from "./pages/Profile.jsx";
 
 const ROUTES = [
   { path: "/", label: "Tailor", Page: Tailor },
   { path: "/job_hunt", label: "Job hunt", Page: JobHunt },
+  { path: "/profile", label: "Profile", Page: Profile },
 ];
 
 export default function App() {

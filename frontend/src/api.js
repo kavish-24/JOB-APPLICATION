@@ -17,7 +17,15 @@ async function request(method, path, body) {
   return data;
 }
 
+async function upload(path, formData) {
+  const res = await fetch(path, { method: "POST", body: formData });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(errorText(data, res.status));
+  return data;
+}
+
 export const api = {
+  upload,
   get: (path) => request("GET", path),
   post: (path, body) => request("POST", path, body),
   patch: (path, body) => request("PATCH", path, body),

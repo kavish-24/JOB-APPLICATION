@@ -9,16 +9,18 @@ import sys
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 import analyze
+import coverletter
 import ats_keywords as ats_kw
 import compose
 import jobs
+import resumes
 import scan
 
 app = FastAPI(title="Resume Skills Knowledge Base")
@@ -42,7 +44,8 @@ def variant(key: str) -> dict:
 
 @app.get("/")
 def index():
-    return {"routes": ["/ai", "/sde", "/fullstack", "/rescan", "/keywords"],
+    return {"routes": [*load_kb()["variants"], "/rescan", "/keywords", "/api/resumes",
+                       "/api/profile"],
             "generated_at": load_kb()["generated_at"]}
 
 
@@ -66,9 +69,11 @@ async def read_request(request: Request) -> tuple[dict, str, dict]:
     if missing:
         raise HTTPException(422, f"Missing field(s): {', '.join(missing)}")
     kb = load_kb()
-    key = analyze.resolve_variant(str(body["resume"]))
+    raw = str(body["resume"]).strip().lower()
+    key = raw if raw in kb["variants"] else analyze.resolve_variant(raw)
     if key is None or key not in kb["variants"]:
-        raise HTTPException(404, f"Unknown resume '{body['resume']}' (use ai, sde or fullstack)")
+        raise HTTPException(404, f"Unknown resume '{body['resume']}' "
+                                 f"(have: {', '.join(kb['variants']) or 'none, upload one'})")
     return kb, key, body
 
 
@@ -158,6 +163,7 @@ async def apply_to_resume(request: Request):
         "additions": compose.additions_from(analysis),
         "wanted": analysis["skills"]["wanted_buckets"],
         "role_family": analysis["role_family"],
+        "personal": bool(analysis.get("personal", False)),
     })
     return {"file": name, "url": f"/files/{name}", "original_url": f"/resume/{key}",
             "analysis": analysis, "edit": edit,
@@ -173,28 +179,145 @@ async def apply_selected(request: Request):
     analysis, selected = body.get("analysis"), body.get("selected")
     if not isinstance(analysis, dict) or "categories" not in analysis:
         raise HTTPException(422, "Run /analyze first and send its result as 'analysis'")
-    if not isinstance(selected, list) or not selected:
-        raise HTTPException(422, "Select at least one skill to add")
+    if not isinstance(selected, list):
+        raise HTTPException(422, "'selected' must be a list of skills (may be empty)")
     kb = load_kb()
     key = analysis.get("resume")
     if key not in kb["variants"]:
         raise HTTPException(404, f"Unknown resume '{key}'")
     additions = compose.additions_for(analysis, [str(s) for s in selected])
-    if not additions:
+    if selected and not additions:
         raise HTTPException(422, "None of the selected skills are in the analysis")
     slug = re.sub(r"[^a-z0-9]+", "-", str(analysis.get("title", "")).lower()).strip("-")[:40] or "role"
     name = f"{key}_{slug}_{time.strftime('%Y%m%d-%H%M%S')}.pdf"
     copy = OUTPUT_DIR / name
+    # always a fresh copy per application, even with nothing to add, so the
+    # base resume is never the file an application points at
     shutil.copy2(ROOT / kb["variants"][key]["source_file"], copy)
+    if not additions:
+        edit = {"changelog": [], "no_slot": [], "unchanged": True}
+        return {"file": name, "url": f"/files/{name}", "original_url": f"/resume/{key}",
+                "edit": edit, "skills_added": [],
+                "skills_lacking": jobs.lacking_from_selection(analysis, edit)}
     edit = await call_mcp("add_skills_to_resume", {
         "pdf_path": str(copy),
         "additions": additions,
         "wanted": analysis["skills"]["wanted_buckets"],
         "role_family": analysis["role_family"],
+        "personal": bool(analysis.get("personal", False)),
     })
     return {"file": name, "url": f"/files/{name}", "original_url": f"/resume/{key}",
             "edit": edit, "skills_added": jobs.added_from(edit),
             "skills_lacking": jobs.lacking_from_selection(analysis, edit)}
+
+
+# ------------------------------------------------------------- cover letters
+def _letter_slug(title: str, company: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", f"{company} {title}".lower()).strip("-")[:50] or "letter"
+
+
+@app.post("/cover_letter")
+async def cover_letter(request: Request):
+    """Body: resume (category key), title, company, jd, optional skills [..].
+    The LOCAL model writes a brief letter from the resume's own text; returns
+    the text (editable) plus the name/contact used for the PDF header."""
+    body = parse_body((await request.body()).decode("utf-8-sig"))
+    missing = [k for k in ("resume", "title", "jd") if not str(body.get(k, "")).strip()]
+    if missing:
+        raise HTTPException(422, f"Missing field(s): {', '.join(missing)}")
+    kb = load_kb()
+    v = kb["variants"].get(str(body["resume"]))
+    if v is None:
+        raise HTTPException(404, f"Unknown resume '{body['resume']}'")
+    resume_text = "SKILLS: " + ", ".join(v["all_skills"]) + "\n" + v.get("body_text", "")
+    header = v.get("header") or {}
+    skills = [str(s) for s in body.get("skills") or []]
+    try:
+        return await run_in_threadpool(coverletter.write, resume_text, header, str(body["title"]),
+                                       str(body.get("company", "")), str(body["jd"]), skills)
+    except coverletter.LetterError as e:
+        raise HTTPException(502, str(e))
+
+
+@app.post("/cover_letter/pdf")
+async def cover_letter_pdf(request: Request):
+    """Body: text (the possibly edited letter), name, contact, title, company,
+    resume. Renders a one-page PDF into output/ and returns its URL."""
+    body = parse_body((await request.body()).decode("utf-8-sig"))
+    text = str(body.get("text", "")).strip()
+    if not text:
+        raise HTTPException(422, "The cover letter is empty")
+    if len(text) > 8000:
+        raise HTTPException(422, "The cover letter is too long")
+    title, company = str(body.get("title", "")), str(body.get("company", ""))
+    key = re.sub(r"[^a-z0-9_]+", "", str(body.get("resume", "")).lower())[:30] or "cv"
+    name = f"cover_{key}_{_letter_slug(title, company)}_{time.strftime('%Y%m%d-%H%M%S')}.pdf"
+    try:
+        await run_in_threadpool(coverletter.render_pdf, OUTPUT_DIR / name, text,
+                                str(body.get("name", "")), str(body.get("contact", "")), title, company)
+    except coverletter.LetterError as e:
+        raise HTTPException(422, str(e))
+    return {"file": name, "url": f"/files/{name}"}
+
+
+# ------------------------------------------------------------- base resumes
+@app.get("/api/resumes")
+def list_resumes():
+    return list(resumes.listing().values())
+
+
+@app.post("/api/resumes", status_code=201)
+async def upload_resume(file: UploadFile = File(...), category: str = Form(...)):
+    """Upload a base resume under a category the user names. The skills section
+    is located and its layout stored; an existing category is replaced (the old
+    PDF is archived, never erased)."""
+    data = await file.read()
+    try:
+        return await run_in_threadpool(resumes.save, category, file.filename or "", data)
+    except resumes.ResumeError as e:
+        raise HTTPException(422, str(e))
+
+
+@app.patch("/api/resumes/{tag}")
+def edit_resume(tag: str, body: dict):
+    try:
+        return resumes.rename(tag, str(body.get("label", "")))
+    except KeyError:
+        raise HTTPException(404, f"No resume category '{tag}'")
+    except resumes.ResumeError as e:
+        raise HTTPException(422, str(e))
+
+
+@app.delete("/api/resumes/{tag}", status_code=204)
+def delete_resume(tag: str):
+    try:
+        resumes.delete(tag)
+    except KeyError:
+        raise HTTPException(404, f"No resume category '{tag}'")
+
+
+@app.get("/api/resumes/{tag}/versions/{name}")
+def get_resume_version(tag: str, name: str):
+    path = resumes.version_path(tag, name)
+    if path is None:
+        raise HTTPException(404, "No such version")
+    return FileResponse(path, media_type="application/pdf")
+
+
+@app.get("/api/profile")
+def profile():
+    """Base resumes, every skill across them (with the tags that list it), and
+    application counts."""
+    items = list(resumes.listing().values())
+    kb = load_kb()
+    skills: dict[str, dict] = {}
+    for key, v in kb["variants"].items():
+        for s in v["all_skills"]:
+            e = skills.setdefault(s.lower(), {"skill": s, "tags": []})
+            e["tags"].append(key)
+    return {"resumes": items,
+            "skills": sorted(skills.values(), key=lambda e: (-len(e["tags"]), e["skill"].lower())),
+            "jobs": jobs.counts()}
 
 
 # ------------------------------------------------------------- job hunt tracker
@@ -246,7 +369,8 @@ def get_original(key: str):
 
 @app.get("/outputs")
 def list_outputs():
-    files = sorted(OUTPUT_DIR.glob("*.pdf"), key=lambda p: p.stat().st_mtime, reverse=True)
+    files = sorted((p for p in OUTPUT_DIR.glob("*.pdf") if not p.name.startswith("cover_")),
+                   key=lambda p: p.stat().st_mtime, reverse=True)
     return [{"file": p.name, "url": f"/files/{p.name}"} for p in files]
 
 
