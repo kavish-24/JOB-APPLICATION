@@ -278,15 +278,16 @@ ATS keywords:"""
 def llm_keywords(title: str, focus: list[str]) -> tuple[list[str], str | None]:
     """What would an ATS for this title + JD focus also search? Returns
     (keywords, error). Never raises; junk in the answer is filtered out."""
-    endpoint = os.getenv("LLM_ENDPOINT")
+    import settings
+    endpoint = settings.llm_endpoint()
     if not endpoint:
-        return [], "LLM_ENDPOINT not set in .env"
+        return [], "Local model URL not set (account panel or LLM_ENDPOINT in .env)"
     prompt = _FEWSHOT.format(title=title.strip(), skills=", ".join(focus) or title.strip())
     req = urllib.request.Request(
         endpoint, data=json.dumps({"question": prompt}).encode(),
         headers={"Content-Type": "application/json", "ngrok-skip-browser-warning": "1"})
     try:
-        with urllib.request.urlopen(req, timeout=float(os.getenv("LLM_TIMEOUT", "120"))) as r:
+        with urllib.request.urlopen(req, timeout=settings.llm_timeout()) as r:
             answer = json.load(r).get("answer", "")
     except Exception as e:  # network, timeout, bad JSON ...
         return [], f"{type(e).__name__}: {e}"

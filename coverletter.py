@@ -1,4 +1,4 @@
-"""Brief cover letters: the LOCAL model (LLM_ENDPOINT) writes the body, the rest
+"""Brief cover letters: the LOCAL model (its URL is set in the app, else LLM_ENDPOINT) writes the body, the rest
 (greeting, sign-off, name, contact line) is filled in here, then it is rendered
 to a one-page PDF.
 
@@ -13,6 +13,8 @@ from datetime import date
 from pathlib import Path
 
 import pymupdf
+
+import settings
 
 from analyze import load_env
 
@@ -48,19 +50,18 @@ class LetterError(RuntimeError):
 
 
 def _ask_local(prompt: str) -> str:
-    load_env()
-    endpoint = os.getenv("LLM_ENDPOINT")
+    endpoint = settings.llm_endpoint()
     if not endpoint:
-        raise LetterError("LLM_ENDPOINT is not set in .env (the local model writes cover letters)")
+        raise LetterError("Set your local model URL (ngrok link) in the account panel; it writes cover letters")
     req = urllib.request.Request(
         endpoint, data=json.dumps({"question": prompt}).encode(),
         headers={"Content-Type": "application/json", "ngrok-skip-browser-warning": "1"})
     try:
-        with urllib.request.urlopen(req, timeout=float(os.getenv("LLM_TIMEOUT", "120"))) as r:
+        with urllib.request.urlopen(req, timeout=settings.llm_timeout()) as r:
             return str(json.load(r).get("answer", ""))
     except Exception as e:
         raise LetterError(f"Local model is not reachable ({type(e).__name__}: {e}). "
-                          "Is the LLM_ENDPOINT tunnel running?")
+                          "Is the ngrok tunnel running, and is the URL in the account panel current?")
 
 
 _GREETING = re.compile(r"^\s*(dear|hello|hi|to whom)\b[^\n]*\n+", re.I)

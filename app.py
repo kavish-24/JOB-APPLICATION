@@ -3,6 +3,7 @@
 Run:  python -m uvicorn app:app --reload --port 8000
 """
 import json
+import os
 import re
 import shutil
 import sys
@@ -21,6 +22,7 @@ import ats_keywords as ats_kw
 import compose
 import jobs
 import resumes
+import settings
 import scan
 
 app = FastAPI(title="Resume Skills Knowledge Base")
@@ -304,6 +306,68 @@ def get_resume_version(tag: str, name: str):
     return FileResponse(path, media_type="application/pdf")
 
 
+def _header(kb: dict) -> dict:
+    return next((v.get("header") for v in kb["variants"].values() if v.get("header")), {}) or {}
+
+
+def display_name(kb: dict) -> str:
+    """The name set in the account panel, else the one on the resumes."""
+    return settings.load().get("display_name") or _header(kb).get("name", "")
+
+
+def resume_email(kb: dict) -> str:
+    m = re.search(r"[\w.+-]+@[\w-]+\.[\w.]+", _header(kb).get("contact", ""))
+    return m.group(0) if m else ""
+
+
+@app.get("/api/settings")
+async def get_settings():
+    kb = load_kb()
+    s = settings.load()
+    return {"display_name": display_name(kb), "resume_name": _header(kb).get("name", ""),
+            "email": resume_email(kb),
+            "llm_endpoint": s.get("llm_endpoint", ""),
+            "llm_endpoint_effective": settings.llm_endpoint(),
+            "llm_endpoint_source": "app" if s.get("llm_endpoint") else (
+                ".env" if settings.llm_endpoint() else "none"),
+            "local_model": await run_in_threadpool(settings.probe)}
+
+
+@app.patch("/api/settings")
+async def save_settings(request: Request):
+    """Body: {display_name?, llm_endpoint?}. An empty llm_endpoint falls back to .env."""
+    body = parse_body((await request.body()).decode("utf-8-sig"))
+    try:
+        settings.update(body.get("display_name"), body.get("llm_endpoint"))
+    except settings.SettingsError as e:
+        raise HTTPException(422, str(e))
+    return await get_settings()
+
+
+@app.post("/api/settings/test")
+async def test_llm(request: Request):
+    """Body: {llm_endpoint?}: check a URL (or the saved one) without saving it."""
+    body = parse_body((await request.body()).decode("utf-8-sig") or "{}")
+    url = str(body.get("llm_endpoint") or "").strip() or None
+    return await run_in_threadpool(settings.probe, url, True)
+
+
+@app.get("/api/status")
+async def status():
+    """Real status for the app header/footer: providers, owner name, counts."""
+    analyze.load_env()
+    kb = load_kb()
+    name = display_name(kb)
+    return {
+        "groq": "ready" if os.getenv("GROQ_API_KEY") else "missing",
+        "local_model": (await run_in_threadpool(settings.probe))["state"],
+        "user": {"name": name,
+                 "initials": "".join(w[0] for w in name.split()[:2]).upper() if name else ""},
+        "resumes": len(kb["variants"]),
+        "jobs": jobs.counts()["total"],
+    }
+
+
 @app.get("/api/profile")
 def profile():
     """Base resumes, every skill across them (with the tags that list it), and
@@ -315,7 +379,8 @@ def profile():
         for s in v["all_skills"]:
             e = skills.setdefault(s.lower(), {"skill": s, "tags": []})
             e["tags"].append(key)
-    return {"resumes": items,
+    return {"user": {"name": display_name(kb), "email": resume_email(kb)},
+            "resumes": items,
             "skills": sorted(skills.values(), key=lambda e: (-len(e["tags"]), e["skill"].lower())),
             "jobs": jobs.counts()}
 

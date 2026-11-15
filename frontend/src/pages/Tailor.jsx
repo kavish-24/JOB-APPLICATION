@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Chips, Segmented, Stat } from "../components.jsx";
+import { Alert, CardHead, Chips, EmptyState, Icon, PageHead, Segmented, Stat } from "../components.jsx";
 import { navigate } from "../router.js";
 
 const TIER_LABEL = { A3: "proven", B: "learnable", C: "don't have", unverified: "verify", unclassified: "check" };
@@ -17,9 +17,25 @@ function PickRow({ item, checked, onToggle }) {
       <span className={`badge tier-${item.tier}`}>{TIER_LABEL[item.tier] || item.tier}</span>
       <span className="muted small">
         {item.reason}
-        {item.where_to_use ? <span className="faint"> · {item.where_to_use}</span> : null}
+        {item.where_to_use ? <span className="faint"> · <b className="muted">{item.where_to_use}</b></span> : null}
       </span>
     </label>
+  );
+}
+
+function PickTable({ items, selected, onToggle }) {
+  return (
+    <div className="table">
+      <div className="tr pick th" aria-hidden="true">
+        <span />
+        <span>Keyword / tech</span>
+        <span>Readiness</span>
+        <span>Context &amp; where to use</span>
+      </div>
+      {items.map((i) => (
+        <PickRow key={i.skill} item={i} checked={selected.has(i.skill)} onToggle={onToggle} />
+      ))}
+    </div>
   );
 }
 
@@ -27,67 +43,90 @@ function Picker({ data, selected, onToggle, onSetAll, onApply, busy }) {
   const c = data.categories;
   const llm = data.llm || {};
   const groqDown = data.ats_keywords?.error;
+  const nSel = (items) => items.filter((i) => selected.has(i.skill)).length;
+  const picked = [...c.must_add, ...c.might_add].filter((i) => selected.has(i.skill)).map((i) => i.text);
   return (
-    <section className="card">
-      <div className="card-head">
-        <div>
-          <p className="eyebrow">Step 2 · {data.resume} resume · {data.role_family} role{data.company ? ` · ${data.company}` : ""}</p>
-          <h2>Pick what to add</h2>
-        </div>
+    <section className="card step">
+      <CardHead step="02" eyebrow="Keyword synthesis" title="Pick what to add"
+                sub={`${data.title}${data.company ? ` · ${data.company}` : ""} · ${data.resume} resume`}>
         <span className={`badge ${llm.source === "groq" ? "lime" : "amber"}`}>
+          <Icon name="bolt" className="sm" />
           keywords: {llm.source === "groq" ? "Groq" : llm.fallback_used ? "local + role table" : "local"}
         </span>
-      </div>
-      {groqDown && <p className="error">Groq failed, used the local fallback: {groqDown}</p>}
+      </CardHead>
+
+      {groqDown && (
+        <Alert tone="amber" title="Groq didn't answer, so the local model found the keywords">
+          <p>{groqDown}. Matching against your resume still works; current buzzwords may be missed.</p>
+        </Alert>
+      )}
+
       <div className="stats">
-        <Stat value={c.have.length} label="already have" tone="lime" />
-        <Stat value={c.must_add.length} label="must add" tone="amber" />
-        <Stat value={c.might_add.length} label="might add" />
-        <Stat value={pct(data.mismatch.overall_mismatch_pct)} label="mismatch now" tone="coral" />
+        <Stat label="Already have" value={c.have.length} icon="check_circle" tone="lime" sub="matched on your resume" />
+        <Stat label="Must add" value={c.must_add.length} icon="add_task" tone="lime" sub="essential, can back up" />
+        <Stat label="Might add" value={c.might_add.length} icon="help" tone="amber" sub="needs real work first" />
+        <Stat label="Mismatch" value={pct(data.mismatch.overall_mismatch_pct)} icon="warning" tone="coral" sub="before any additions" />
       </div>
 
-      <h3>Already on your resume</h3>
-      <Chips items={c.have.map((h) => h.text)} tone="lime" />
+      <div className="inset">
+        <div className="inset-head">
+          <span className="title"><Icon name="verified" className="sm lime" />Already on your resume</span>
+          <span className="faint small mono">{c.have.length} tags</span>
+        </div>
+        <Chips items={c.have.map((h) => h.text)} tone="lime" icon="check" empty="nothing from this JD yet" />
+      </div>
 
-      <div className="row between pick-head">
-        <h3>Must add <span className="faint small">· the JD/ATS ranks these essential and you can back them up</span></h3>
-        {c.must_add.length > 0 && (
-          <button type="button" className="btn ghost sm" onClick={() => onSetAll(c.must_add, true)}>Select all</button>
-        )}
+      <div className="list-title">
+        <h3><span className="led" />Must add — the JD/ATS ranks these essential</h3>
+        <div className="row">
+          <span className="count-note">Selected {nSel(c.must_add)} of {c.must_add.length}</span>
+          {c.must_add.length > 0 && (
+            <button type="button" className="btn ghost sm" onClick={() => onSetAll(c.must_add, true)}>Select all</button>
+          )}
+        </div>
       </div>
       {c.must_add.length
-        ? <div className="table">{c.must_add.map((i) => (
-            <PickRow key={i.skill} item={i} checked={selected.has(i.skill)} onToggle={onToggle} />))}</div>
-        : <p className="faint">Nothing essential is missing.</p>}
+        ? <PickTable items={c.must_add} selected={selected} onToggle={onToggle} />
+        : <p className="faint small">Nothing essential is missing.</p>}
 
-      <h3>Might add <span className="faint small">· needs real work first: only tick what you can prove, no bluffing</span></h3>
+      <div className="list-title">
+        <h3><span className="led amber" />Might add — needs real work first, no bluffing</h3>
+        <span className="count-note">Selected {nSel(c.might_add)} of {c.might_add.length}</span>
+      </div>
       {c.might_add.length
-        ? <div className="table">{c.might_add.map((i) => (
-            <PickRow key={i.skill} item={i} checked={selected.has(i.skill)} onToggle={onToggle} />))}</div>
-        : <p className="faint">Nothing else.</p>}
+        ? <PickTable items={c.might_add} selected={selected} onToggle={onToggle} />
+        : <p className="faint small">Nothing else.</p>}
 
-      <div className="row end sticky-bar">
-        <span className="muted">{selected.size} selected</span>
-        <button type="button" className="btn ghost" disabled={!selected.size || !!busy}
-                onClick={() => onSetAll([...c.must_add, ...c.might_add], false)}>Clear</button>
-        <button type="button" className="btn primary" disabled={!!busy} onClick={onApply}>
-          {busy === "apply" ? <><span className="spin" /> {selected.size ? "Editing resume…" : "Copying…"}</>
-            : selected.size ? `Add ${selected.size} to resume` : "Use resume as-is"}
-        </button>
+      <div className="selection-bar">
+        <div className="row">
+          <span className="count-tag">{selected.size} SELECTED</span>
+          <span className="queued">{picked.length ? `${picked.slice(0, 4).join(", ")}${picked.length > 4 ? "…" : ""} queued` : "Nothing ticked: the resume will be copied as-is"}</span>
+        </div>
+        <div className="row">
+          <button type="button" className="btn ghost sm" disabled={!selected.size || !!busy}
+                  onClick={() => onSetAll([...c.must_add, ...c.might_add], false)}>Clear selection</button>
+          <button type="button" className="btn primary" disabled={!!busy} onClick={onApply}>
+            {busy === "apply" ? <><span className="spin" /> {selected.size ? "Editing resume…" : "Copying…"}</>
+              : <>{selected.size ? `Add ${selected.size} to resume` : "Use resume as-is"}<Icon name="arrow_forward" className="sm" /></>}
+          </button>
+        </div>
       </div>
     </section>
   );
 }
 
-/* ------------------------------------------------ step 3: compare + save */
+/* ------------------------------------------------------- step 3: compare */
 function ChangeRows({ changelog, noSlot }) {
+  if (!changelog.length && !noSlot.length) return <p className="faint small">No changes: this copy is identical to the base resume.</p>;
   return (
     <div className="table">
       {changelog.map((x, i) => (
         <div className="tr" key={i}>
-          <span className={`badge ${x.action === "added" ? "lime" : "coral"}`}>{x.action}</span>
-          <span className="strong">{x.skill}</span>
-          <span className="faint">{x.category}</span>
+          <span className={`badge ${x.action === "added" ? "lime" : "coral"}`}>
+            <Icon name={x.action === "added" ? "add" : "remove"} className="sm" />{x.action}
+          </span>
+          <span className={x.action === "added" ? "strong" : "strong faint"}>{x.skill}</span>
+          <span className="faint small">{x.category}</span>
           <span className="muted small">{x.reason}</span>
         </div>
       ))}
@@ -95,12 +134,47 @@ function ChangeRows({ changelog, noSlot }) {
         <div className="tr" key={x.skill}>
           <span className="badge amber">no slot</span>
           <span className="strong">{x.skill}</span>
-          <span className="faint">{x.category}</span>
+          <span className="faint small">{x.category}</span>
           <span className="muted small">{x.reason}</span>
         </div>
       ))}
-      {!changelog.length && !noSlot.length && <p className="faint">No changes needed.</p>}
     </div>
+  );
+}
+
+function Compare({ done }) {
+  const added = done.edit.changelog.filter((x) => x.action === "added").length;
+  const removed = done.edit.changelog.filter((x) => x.action === "removed").length;
+  return (
+    <section className="card step">
+      <CardHead step="03" eyebrow="Diff viewer" title="Check it side by side"
+                sub="Only the skills lines changed; the rest of the resume is untouched.">
+        <a className="btn ghost sm" href={done.url} target="_blank" rel="noreferrer">Open <Icon name="open_in_new" className="sm" /></a>
+      </CardHead>
+      <div className="diff">
+        <figure>
+          <figcaption><span><span className="led" />Original</span><span className="faint">base resume</span></figcaption>
+          <iframe title="Original resume" src={`${done.original_url}#view=FitH`} className="pdf" />
+        </figure>
+        <figure className="edited">
+          <figcaption><span><span className="led" />Edited ({done.file})</span><span className="badge lime">+{added} / −{removed}</span></figcaption>
+          <iframe key={done.url} title="Edited resume" src={`${done.url}#view=FitH`} className="pdf" />
+        </figure>
+      </div>
+      <div className="inset change-box">
+        <div className="inset-head">
+          <span className="title">What changed</span>
+          <span className="faint small mono">skills section</span>
+        </div>
+        <ChangeRows changelog={done.edit.changelog} noSlot={done.edit.no_slot} />
+        {done.skills_lacking?.length > 0 && (
+          <>
+            <h4 style={{ margin: "16px 0 8px", color: "var(--amber)" }}>Study these if shortlisted</h4>
+            <Chips items={done.skills_lacking} tone="amber" icon="school" />
+          </>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -140,33 +214,35 @@ function CoverLetter({ form, analysis, done, letter, setLetter, makePdf }) {
   };
 
   return (
-    <section className="card">
-      <div className="card-head">
-        <div>
-          <p className="eyebrow">Step 4 · optional · written by your local model</p>
-          <h2>Cover letter</h2>
-        </div>
-        <button type="button" className={`btn ${letter ? "ghost" : "primary"}`} disabled={!!busy} onClick={generate}>
-          {busy === "write" ? <><span className="spin" /> Writing…</> : letter ? "Rewrite" : "Write cover letter"}
+    <section className="card step">
+      <CardHead step="04" eyebrow="Narrative · optional" title="Cover letter"
+                sub="A brief 3-paragraph letter written by your local model from your resume, this JD and the company.">
+        <button type="button" className={`btn ${letter ? "ghost" : "primary"} sm`} disabled={!!busy} onClick={generate}>
+          {busy === "write" ? <><span className="spin" /> Writing…</>
+            : <><Icon name="edit_note" className="sm" />{letter ? "Rewrite" : "Write cover letter"}</>}
         </button>
-      </div>
-      {error && <p className="error">{error}</p>}
+        {letter && (
+          <span className="letter-actions">
+            <button type="button" className="btn ghost icon" onClick={copy} title="Copy text" aria-label="Copy text">
+              <Icon name={copied ? "check" : "content_copy"} className="sm" />
+            </button>
+            <button type="button" className="btn ghost icon" onClick={download} disabled={!!busy}
+                    title="Download PDF" aria-label="Download PDF">
+              {busy === "pdf" ? <span className="spin" /> : <Icon name="download" className="sm" />}
+            </button>
+          </span>
+        )}
+      </CardHead>
+      {error && <Alert tone="coral" icon="error" title="Couldn't write the letter"><p>{error}</p></Alert>}
       {letter ? (
         <>
-          <textarea className="letter" value={letter.text}
+          <textarea className="letter" aria-label="Cover letter" value={letter.text}
                     onChange={(e) => setLetter((l) => ({ ...l, text: e.target.value, file: null, url: null }))} />
-          <div className="row between">
-            <p className="faint small">Check every fact before sending: the model only had your resume, but small models can still slip.</p>
-            <div className="row">
-              <button type="button" className="btn ghost" onClick={copy}>{copied ? "Copied ✓" : "Copy text"}</button>
-              <button type="button" className="btn ghost" disabled={!!busy} onClick={download}>
-                {busy === "pdf" ? <><span className="spin" /> Making PDF…</> : "Download PDF"}
-              </button>
-            </div>
-          </div>
+          <p className="hint" style={{ marginTop: 10 }}><Icon name="warning" className="sm amber" />
+            Check every fact before sending. Never claim experience you can't back up.</p>
         </>
-      ) : (
-        <p className="faint">A short, 3-paragraph letter from your resume, this JD and the company. You can edit it before copying or downloading.</p>
+      ) : !error && (
+        <p className="faint small" style={{ margin: 0 }}>You can edit it before copying or downloading; it's saved with the application in step 5.</p>
       )}
     </section>
   );
@@ -179,7 +255,7 @@ function SaveBar({ done, form, analysis, letter, makePdf }) {
   const [error, setError] = useState("");
 
   async function save() {
-    if (!form.company.trim()) return setError("Add the company name in the form above first.");
+    if (!form.company.trim()) return setError("Add the company name in step 1 first.");
     setSaving(true);
     setError("");
     try {
@@ -205,68 +281,31 @@ function SaveBar({ done, form, analysis, letter, makePdf }) {
   }
 
   return (
-    <section className="card save-bar">
-      <div className="row between">
-        <div>
-          <p className="eyebrow">Step 5</p>
-          <h2>Track this application</h2>
-          <p className="muted small">
-            Saves the company, role, JD, resume copy{letter?.text ? ", cover letter" : ""} and the skills to study.
-          </p>
-        </div>
+    <section className="card step">
+      <CardHead step="05" eyebrow="Pipeline" title="Track this application"
+                sub={`Saves ${form.company || "the company"} · ${form.title}, the JD, resume copy${letter?.text ? ", cover letter" : ""} and skills to study.`}>
         {saved
-          ? <button type="button" className="btn primary" onClick={() => navigate(`/job_hunt/${saved.id}`)}>Saved ✓ · Open it →</button>
+          ? <button type="button" className="btn primary" onClick={() => navigate(`/job_hunt/${saved.id}`)}>
+              Saved ✓ · Open in Job hunt <Icon name="arrow_forward" className="sm" /></button>
           : <button type="button" className="btn primary" disabled={saving} onClick={save}>
-              {saving ? <><span className="spin" /> Saving…</> : "Add to applied jobs"}
+              {saving ? <><span className="spin" /> Saving…</> : <>Add to applied jobs <Icon name="arrow_forward" className="sm" /></>}
             </button>}
-      </div>
+      </CardHead>
       {error && <p className="error">{error}</p>}
-    </section>
-  );
-}
-
-function Compare({ done }) {
-  return (
-    <section className="card">
-      <div className="card-head">
-        <div>
-          <p className="eyebrow">Step 3 · output/{done.file}</p>
-          <h2>Check it side by side</h2>
-        </div>
-        <a className="btn ghost" href={done.url} target="_blank" rel="noreferrer">Open ↗</a>
-      </div>
-      <div className="side">
-        <figure>
-          <figcaption className="eyebrow">Original</figcaption>
-          <iframe title="Original resume" src={`${done.original_url}#view=FitH`} className="pdf" />
-        </figure>
-        <figure>
-          <figcaption className="eyebrow lime">Edited</figcaption>
-          <iframe key={done.url} title="Edited resume" src={`${done.url}#view=FitH`} className="pdf" />
-        </figure>
-      </div>
-      <h3>What changed</h3>
-      <ChangeRows changelog={done.edit.changelog} noSlot={done.edit.no_slot} />
-      {done.skills_lacking?.length > 0 && (
-        <>
-          <h3>Study these if shortlisted</h3>
-          <Chips items={done.skills_lacking} tone="amber" />
-        </>
-      )}
     </section>
   );
 }
 
 /* ------------------------------------------------------ Groq full report */
 function KeywordTable({ items }) {
-  if (!items?.length) return <span className="faint">none</span>;
+  if (!items?.length) return <span className="faint small">none</span>;
   return (
     <div className="table">
       {items.map((x, i) => (
-        <div className="tr" key={`${kwText(x)}-${i}`}>
-          <span className={`badge ${x.source === "JD" ? "lime" : "amber"}`}>{x.source || "–"}</span>
+        <div className="tr kw" key={`${kwText(x)}-${i}`}>
+          <span className={`badge ${x.source === "JD" ? "lime" : "violet"}`}>{x.source || "–"}</span>
           <span className="strong">{kwText(x)}</span>
-          <span className="faint">{x.where_to_use}</span>
+          <span className="faint small">{x.where_to_use}</span>
         </div>
       ))}
     </div>
@@ -276,54 +315,56 @@ function KeywordTable({ items }) {
 function Keywords({ data }) {
   if (!data || data.error) return null;
   const k = data.keywords || {};
-  const copyAll = () => navigator.clipboard.writeText(uniq([
-    ...(k.must_have_keywords || []), ...(k.good_to_have_keywords || []),
-    ...(k.technical_skills || []), ...(k.tools_and_platforms || []),
-  ]).join(", "));
+  const all = uniq([...(k.must_have_keywords || []), ...(k.good_to_have_keywords || []),
+                    ...(k.technical_skills || []), ...(k.tools_and_platforms || [])]);
   return (
     <details className="card report">
       <summary>
-        <span className="eyebrow">ATS keywords · {data.model}</span>
-        <h2>Full Groq keyword report</h2>
+        <span className="title"><Icon name="analytics" className="sm lime" />Full Groq keyword report</span>
+        <span className="row"><span className="faint small mono">{all.length} keywords · {data.model}</span>
+          <Icon name="expand_more" className="chev" /></span>
       </summary>
-      <div className="row end">
-        <button type="button" className="btn ghost" onClick={copyAll}>Copy keywords</button>
+      <div className="report-body">
+        <div className="row between">
+          {k.role_summary ? <p className="muted" style={{ margin: 0, flex: "1 1 300px" }}>{k.role_summary}</p> : <span />}
+          <button type="button" className="btn ghost sm" onClick={() => navigator.clipboard.writeText(all.join(", "))}>
+            <Icon name="content_copy" className="sm" />Copy keywords</button>
+        </div>
+        <h3>Must have</h3>
+        <KeywordTable items={k.must_have_keywords} />
+        <h3>Good to have</h3>
+        <KeywordTable items={k.good_to_have_keywords} />
+        <div className="grid">
+          <div><h4>Technical skills</h4><Chips items={uniq(k.technical_skills)} tone="lime" /></div>
+          <div><h4>Tools & platforms</h4><Chips items={uniq(k.tools_and_platforms)} tone="lime" /></div>
+          <div><h4>Soft skills</h4><Chips items={uniq(k.soft_skills)} /></div>
+          <div><h4>Domain</h4><Chips items={uniq(k.domain_keywords)} /></div>
+          <div><h4>Action verbs</h4><Chips items={uniq(k.action_verbs)} /></div>
+          <div><h4>Title variations</h4><Chips items={uniq(k.job_title_variations)} /></div>
+          <div><h4>Avoid</h4><Chips items={uniq(k.keywords_to_avoid)} tone="coral" /></div>
+        </div>
+        {k.stretch_keywords?.length > 0 && (
+          <>
+            <h3>Stretch</h3>
+            <div className="table">
+              {k.stretch_keywords.map((x, i) => (
+                <div className="tr kw" key={i}>
+                  <span className="badge amber">stretch</span>
+                  <span className="strong">{kwText(x)}</span>
+                  <span className="muted small">{x.beginner_friendly_phrasing}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+        {k.sample_resume_bullets?.length > 0 && (
+          <>
+            <h3>Sample bullets</h3>
+            <ul className="muted">{k.sample_resume_bullets.map((b, i) => <li key={i}>{b}</li>)}</ul>
+          </>
+        )}
+        {k.honesty_note && <p className="hint"><Icon name="info" className="sm" />{k.honesty_note}</p>}
       </div>
-      {k.role_summary && <p className="muted">{k.role_summary}</p>}
-      <h3>Must have</h3>
-      <KeywordTable items={k.must_have_keywords} />
-      <h3>Good to have</h3>
-      <KeywordTable items={k.good_to_have_keywords} />
-      <div className="grid">
-        <div><h4>Technical skills</h4><Chips items={uniq(k.technical_skills)} tone="lime" /></div>
-        <div><h4>Tools & platforms</h4><Chips items={uniq(k.tools_and_platforms)} tone="lime" /></div>
-        <div><h4>Soft skills</h4><Chips items={uniq(k.soft_skills)} /></div>
-        <div><h4>Domain</h4><Chips items={uniq(k.domain_keywords)} /></div>
-        <div><h4>Action verbs</h4><Chips items={uniq(k.action_verbs)} /></div>
-        <div><h4>Title variations</h4><Chips items={uniq(k.job_title_variations)} /></div>
-        <div><h4>Avoid</h4><Chips items={uniq(k.keywords_to_avoid)} tone="coral" /></div>
-      </div>
-      {k.stretch_keywords?.length > 0 && (
-        <>
-          <h3>Stretch</h3>
-          <div className="table">
-            {k.stretch_keywords.map((x, i) => (
-              <div className="tr" key={i}>
-                <span className="badge amber">stretch</span>
-                <span className="strong">{kwText(x)}</span>
-                <span className="muted small">{x.beginner_friendly_phrasing}</span>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-      {k.sample_resume_bullets?.length > 0 && (
-        <>
-          <h3>Sample bullets</h3>
-          <ul className="muted">{k.sample_resume_bullets.map((b, i) => <li key={i}>{b}</li>)}</ul>
-        </>
-      )}
-      {k.honesty_note && <p className="faint small">{k.honesty_note}</p>}
     </details>
   );
 }
@@ -406,53 +447,65 @@ export default function Tailor() {
     return n;
   });
 
-  return (
-    <>
-      <section className="hero">
-        <p className="eyebrow">Step 1</p>
-        <h1>Tailor a resume<span className="lime">.</span></h1>
-        <p className="muted">Paste the job. Groq finds the ATS keywords, Crafter checks them against your resume, and you pick what goes in.</p>
-      </section>
+  const head = (
+    <PageHead eyebrow="Resume optimizer · step by step" title="Tailor a resume"
+              lede="Paste the job. Groq finds the ATS keywords, crafter checks them against your resume, and you pick what goes in. Nothing is added without your tick." />
+  );
 
-      <form className="card form" onSubmit={(e) => { e.preventDefault(); runAnalyze(); }}>
+  if (resumes && !resumes.length) {
+    return (
+      <>
+        {head}
+        <section className="card">
+          <EmptyState icon="note_add" title="No base resume yet"
+                      actions={<button type="button" className="btn primary" onClick={() => navigate("/profile")}>
+                        Upload your first resume <Icon name="arrow_forward" className="sm" /></button>}>
+            To start tailoring, add at least one resume category in Profile. crafter finds its skills
+            section and compares it against each job you paste here.
+          </EmptyState>
+        </section>
+      </>
+    );
+  }
+
+  return (
+    <div className="tailor">
+      {head}
+
+      <form className="card step form" onSubmit={(e) => { e.preventDefault(); runAnalyze(); }}>
+        <CardHead step="01" eyebrow="Target role" title="Target job & description">
+          {resumes === null ? <span className="faint small">Loading resumes…</span> : (
+            <Segmented name="Resume category" value={form.resume} onChange={set("resume")}
+                       options={resumes.map((r) => ({ value: r.key, label: r.label || r.key }))} />
+          )}
+        </CardHead>
         <div className="field-row">
           <label className="field">
-            <span>Resume</span>
-            {resumes === null ? <span className="faint">Loading…</span>
-              : resumes.length ? (
-                <Segmented name="Resume" value={form.resume} onChange={set("resume")}
-                           options={resumes.map((r) => ({ value: r.key, label: r.label || r.key }))} />
-              ) : (
-                <a className="link" href="/profile" onClick={(e) => { e.preventDefault(); navigate("/profile"); }}>
-                  No base resume yet: upload one →
-                </a>
-              )}
-          </label>
-          <label className="field grow">
             <span>Job title</span>
-            <input value={form.title} onChange={set("title")} placeholder="AI Engineer – Fresher" />
+            <input value={form.title} onChange={set("title")} placeholder="Backend Developer" />
           </label>
-        </div>
-        <div className="field-row">
-          <label className="field grow">
+          <label className="field">
             <span>Company</span>
-            <input value={form.company} onChange={set("company")} placeholder="Acme Labs" />
+            <input value={form.company} onChange={set("company")} placeholder="Swiggy" />
           </label>
-          <label className="field grow">
-            <span>Job link <span className="faint">(optional)</span></span>
-            <input type="url" value={form.link} onChange={set("link")} placeholder="https://…" />
+          <label className="field">
+            <span>Job posting URL <span className="faint">optional</span></span>
+            <input type="url" value={form.link} onChange={set("link")} placeholder="https://careers…" />
           </label>
         </div>
         <label className="field">
-          <span>Job description</span>
+          <span>Job description <span className="char-count">{form.jd.length.toLocaleString()} chars</span></span>
           <textarea value={form.jd} onChange={set("jd")}
                     placeholder="Paste the full job description. Multi-line is fine." />
         </label>
-        <div className="row end">
-          {error && <p className="error">{error}</p>}
-          <button className="btn primary" disabled={!!busy}>
-            {busy === "analyze" ? <><span className="spin" /> Analysing…</> : "Analyze"}
-          </button>
+        <div className="card-foot">
+          <span className="hint"><Icon name="info" className="sm" />Groq extracts the keywords · matching against your resume happens locally</span>
+          <div className="row">
+            {error && <p className="error">{error}</p>}
+            <button className="btn primary" disabled={!!busy}>
+              {busy === "analyze" ? <><span className="spin" /> Analysing…</> : <>Analyze job <Icon name="arrow_forward" className="sm" /></>}
+            </button>
+          </div>
         </div>
       </form>
 
@@ -470,6 +523,6 @@ export default function Tailor() {
                  letter={letter} makePdf={makeLetterPdf} />
       )}
       {analysis && <Keywords data={analysis.ats_keywords} />}
-    </>
+    </div>
   );
 }
